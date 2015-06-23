@@ -13,6 +13,8 @@ AffdexMe
 
 Most of the methods in this file control the application's UI. Therefore, if you are just interested in learning how the Affectiva SDK works, you will find the calls relevant to the use of the SDK in the startCamera() and stopCamera() methods, as well as the onImageResults() method.
 
+The AffdexMe folder is an Android Studio project.
+
 In order to use this project, you will need to:
 - Obtain the Affectiva Android SDK 
 - Copy the contents of the SDK's assets folder into this project's assets folder
