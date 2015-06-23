@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:affdex="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_height="@dimen/metric_viewgroup"
+    android:layout_width="match_parent"
+    android:layout_alignParentTop="true"
+    android:layout_centerHorizontal="true"
+    android:background="@color/transparent_overlay"
+    android:paddingBottom="@dimen/bottom_padding"
+    >
+    <!-- Logo-->
+    <ImageView
+        android:layout_height="wrap_content"
+        android:layout_width="@dimen/image_width"
+        android:layout_centerInParent="true"
+        android:src="@drawable/affectiva_logo_clear_background"
+        android:id="@+id/affectiva_logo" />
+    <!-- Left Metrics-->
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/metric_panel_padding"
+        android:layout_alignParentLeft="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/left_metrics">
+        <TextView
+            style="@style/metricName"
+            android:text="@string/smile"
+            android:id="@+id/smile_name"
+            />
+        <com.affectiva.affdexme.MetricView
+            style="@style/metricPct"
+            android:id="@+id/smile_pct" />
+        <TextView
+            style="@style/metricName"
+            android:text="@string/brow_raise"
+            android:id="@+id/brow_raise_name" />
+        <com.affectiva.affdexme.MetricView
+            style="@style/metricPct"
+            android:id="@+id/brow_raise_pct" />
+        <TextView
+            style="@style/metricName"
+            android:text="@string/brow_furrow"
+            android:id="@+id/brow_furrow_name" />
+        <com.affectiva.affdexme.MetricView
+            style="@style/metricPct"
+            android:id="@+id/brow_furrow_pct" />
+    </LinearLayout>
+    <!-- FPS Counter-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+        <TextView
+            style="@style/metricName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="right|bottom"
+            android:layout_weight="1"
+            android:id="@+id/fps_name"
+            android:text="@string/fps"
+            />
+        <TextView
+            style="@style/metricPct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left|bottom"
+            android:id="@+id/fps_value"
+            android:textSize="@dimen/pct_text_size"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
+    <!-- Right Metrics-->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_alignParentRight="true"
+        android:paddingRight="@dimen/metric_panel_padding"
+        android:layout_height="match_parent"
+        android:id="@+id/right_metrics">
+        <TextView
+            style="@style/metricName"
+            android:text="@string/frown"
+            android:id="@+id/frown_name" />
+        <com.affectiva.affdexme.MetricView
+            style="@style/metricPct"
+            android:id="@+id/frown_pct" />
+        <TextView
+            style="@style/metricName"
+            android:text="@string/valence"
+            android:id="@+id/valence_name" />
+        <com.affectiva.affdexme.GradientMetricView
+            style="@style/metricPct"
+            android:id="@+id/valence_pct" />
+        <TextView
+            style="@style/metricName"
+            android:text="@string/engagement"
+            android:id="@+id/engagement_name" />
+        <com.affectiva.affdexme.MetricView
+            style="@style/metricPct"
+            android:id="@+id/engagement_pct" />
+    </LinearLayout>
+</RelativeLayout>

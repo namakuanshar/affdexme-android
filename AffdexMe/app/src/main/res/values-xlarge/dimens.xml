@@ -1,0 +1,11 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="name_text_size">28sp</dimen>
+    <dimen name="pct_text_size">18sp</dimen>
+    <dimen name="menu_text_size">23sp</dimen>
+    <dimen name="metric_view_bar_length">140dp</dimen>
+    <dimen name="bottom_padding">15dp</dimen>
+    <dimen name="metric_viewgroup">220dp</dimen>
+    <dimen name="image_width">250dp</dimen>
+    <dimen name="metric_panel_padding">25dp</dimen>
+</resources>

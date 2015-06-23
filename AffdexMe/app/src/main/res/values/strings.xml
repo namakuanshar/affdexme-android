@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">AffdexMe</string>
+
+    <string name="smile">SMILE</string>
+    <string name="brow_raise">BROW RAISE</string>
+    <string name="brow_furrow">BROW FURROW</string>
+    <string name="valence">VALENCE</string>
+    <string name="engagement">ENGAGEMENT</string>
+    <string name="frown">FROWN</string>
+    <string name="fps">FPS:</string>
+
+    <string name="show_fps">Show FPS</string>
+    <string name="show_tracking">Show Tracking</string>
+    <string name="processed_frames_per_second">Processed Frames Per Second: </string>
+
+    <string name="not_found">Sorry, AffdexMe requires the use of a front-facing camera, which was not found on your device.</string>
+
+</resources>

@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="name_text_size">24sp</dimen>
+    <dimen name="pct_text_size">14sp</dimen>
+    <dimen name="menu_text_size">18sp</dimen>
+    <dimen name="metric_view_bar_length">130dp</dimen>
+    <dimen name="bottom_padding">10dp</dimen>
+    <dimen name="metric_viewgroup">190dp</dimen>
+    <dimen name="image_width">180dp</dimen>
+    <dimen name="metric_panel_padding">15dp</dimen>
+</resources>
