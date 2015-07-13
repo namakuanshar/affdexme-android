@@ -2,9 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"  tools:context=".MainActivity" android:focusable="true"
     android:focusableInTouchMode="true"
-    android:id="@+id/main_layout"
     android:keepScreenOn="true"
-    android:layout_gravity="center"
     >
     <SurfaceView
         android:layout_width="match_parent"
@@ -12,18 +10,27 @@
         android:layout_centerInParent="true"
         android:id="@+id/camera_preview"
         />
-    <com.affectiva.affdexme.DrawingView
-        android:layout_width="match_parent"
+
+    <RelativeLayout
         android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:id="@+id/main_layout"
         android:layout_centerInParent="true"
-        android:id="@+id/drawing_view"/>
-    <include layout="@layout/metric_layout"
-        android:id="@+id/metric_view_group"
-        />
-    <include layout="@layout/menu_layout"
-        android:layout_below="@id/metric_view_group"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
+        >
+        <com.affectiva.affdexme.DrawingView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:id="@+id/drawing_view"/>
+        <include layout="@layout/metric_layout"
+            android:id="@+id/metric_view_group"
+            />
+        <include layout="@layout/menu_layout"
+            android:layout_below="@id/metric_view_group"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"/>
+    </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

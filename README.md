@@ -11,7 +11,7 @@ AffdexMe
 
 **AffdexMe** is an app that demonstrates the use of the Affectiva Android SDK.  It uses the front-facing camera on your Android device to view, process and analyze live video of your face. Start the app and you will see your own face on the screen and metrics describing your expressions. Tapping the screen will bring up a menu with options to display the Processed Frames Per Second metric, display facial tracking points, and control the rate at which frames are processed by the SDK.
 
-Most of the methods in this file control the application's UI. Therefore, if you are just interested in learning how the Affectiva SDK works, you will find the calls relevant to the use of the SDK in the startCamera() and stopCamera() methods, as well as the onImageResults() method.
+Most of the methods in this file control the application's UI. Therefore, if you are just interested in learning how the Affectiva SDK works, you will find the calls relevant to the use of the SDK in the initializeCameraDetector(), startCamera(), stopCamera(), and onImageResults() methods.
 
 The AffdexMe folder is an Android Studio project.
 

@@ -44,11 +44,14 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  * display facial tracking points, and control the rate at which frames are processed by the SDK.
  *
  * Most of the methods in this file control the application's UI. Therefore, if you are just interested in learning how the Affectiva SDK works,
- *  you will find the calls relevant to the use of the SDK in the startCamera() and stopCamera() methods, as well as the onImageResults() method.
+ *  you will find the calls relevant to the use of the SDK in the initializeCameraDetector(), startCamera(), stopCamera(),
+ *  and onImageResults() methods.
  *
  * This class implements the Detector.ImageListener interface, allowing it to receive the onImageResults() event.
  * This class implements the Detector.FaceListener interface, allowing it to receive the onFaceDetectionStarted() and
  * onFaceDetectionStopped() events.
+ * This class implements the CameraDetector.CameraSurfaceViewListener interface, allowing it to receive
+ * onSurfaceViewAspectRatioChanged() events.
  *
  * In order to use this project, you will need to:
  * - Obtain the SDK from Affectiva (visit http://www.affdex.com/mobile-sdk)
@@ -64,10 +67,9 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 
 public class MainActivity extends Activity
-        implements Detector.FaceListener, Detector.ImageListener, TextView.OnEditorActionListener, View.OnTouchListener{
+        implements Detector.FaceListener, Detector.ImageListener, TextView.OnEditorActionListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
 
-    private static final String LOG_TAG = "AffdexMe";
-
+    private static final String LOG_TAG = "Affectiva";
     //Affectiva SDK Object
     private CameraDetector detector = null;
 
@@ -138,6 +140,8 @@ public class MainActivity extends Activity
         }
 
         initializeUI();
+
+        initializeCameraDetector();
     }
 
     void initializeUI() {
@@ -209,7 +213,7 @@ public class MainActivity extends Activity
         menuLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                /**
+                /*
                  * This method effectively blocks the mainLayout from receiving a touch event
                  * when the menu is pressed. This is to prevent the menu from closing if the user accidentally touches it
                  * when aiming for a checkbox or edit box.
@@ -219,7 +223,7 @@ public class MainActivity extends Activity
         });
         fpsEditText.setOnEditorActionListener(this);
 
-        /**
+        /*
          * This app sets the View.SYSTEM_UI_FLAG_HIDE_NAVIGATION flag. Unfortunately, this flag causes
          * Android to steal the first touch event after the navigation bar has been hidden, a touch event
          * which should be used to make our menu visible again. Therefore, we attach a listener to be notified
@@ -237,21 +241,44 @@ public class MainActivity extends Activity
         });
     }
 
-    /**
-     * We use onResume() to restore application settings using the SharedPreferences object and
-     * to indicate that dimensions should be recalculated.
+    void initializeCameraDetector() {
+        /* Put the SDK in camera mode by using this constructor. The SDK will be in control of
+         * the camera. If a SurfaceView is passed in as the last argument to the constructor,
+         * that view will be painted with what the camera sees.
+         */
+        detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
+
+        // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
+        //detector.setLicensePath("YourLicenseFile");
+
+        // We want to detect all expressions, so turn on all classifiers.
+        detector.setDetectSmile(true);
+        detector.setDetectBrowFurrow(true);
+        detector.setDetectBrowRaise(true);
+        detector.setDetectEngagement(true);
+        detector.setDetectValence(true);
+        detector.setDetectLipCornerDepressor(true);
+
+        detector.setMaxProcessRate(detectorProcessRate);
+
+        detector.setImageListener(this);
+        detector.setFaceListener(this);
+        detector.setCameraDetectorDimensionsListener(this);
+    }
+
+    /*
+     * We use onResume() to restore application settings using the SharedPreferences object
      */
     @Override
     public void onResume() {
         super.onResume();
         restoreApplicationSettings();
-        drawingView.invalidateDimensions(); //set flag to have screen dimensions resized (usage appears in onImageResults())
         setMenuVisible(false); //always make the menu invisible by default
     }
 
-    /**
+    /*
      * We use the Shared Preferences object to restore application settings.
-     * **/
+     */
     public void restoreApplicationSettings() {
         sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
 
@@ -287,57 +314,40 @@ public class MainActivity extends Activity
     /**
      * We start the camera as soon as the application has been given focus, which occurs as soon as the application has
      * been opened or reopened. Although this can also occur when the application regains focus after a dialog box has been closed,
-     * the camera will not be reinitialized because the detector object will not have been set to null during onPause().
+     * the startCamera() method will not start the camera if it is already running.
      * We also reset variables used to calculate the Processed Frames Per Second.
      */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
+
         if (hasFocus && isFrontFacingCameraDetected) {
+
             startCamera();
+
+            if (!drawingView.isSurfaceDimensionsNeeded()) {
+                progressBarLayout.setVisibility(View.GONE);
+            }
             resetFPSCalculations();
         }
     }
 
     void startCamera() {
-        if (detector == null) {
-            /** Put the SDK in camera mode by using this constructor. The SDK will be in control of
-             * the camera. If a SurfaceView is passed in as the last argument to the constructor,
-             * that view will be painted with what the camera sees.
-             */
-            detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
 
-            // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
-            //detector.setLicensePath("YourLicenseFile");
-
-            // We want to detect all expressions, so turn on all classifiers.
-            detector.setDetectSmile(true);
-            detector.setDetectBrowFurrow(true);
-            detector.setDetectBrowRaise(true);
-            detector.setDetectEngagement(true);
-            detector.setDetectValence(true);
-            detector.setDetectLipCornerDepressor(true);
-
-            detector.setMaxProcessRate(detectorProcessRate);
-
-            detector.setImageListener(this);
-            detector.setFaceListener(this);
-
-            //now that the CameraDetector object has been set up, start the camera
+        if (!detector.isRunning()) {
             try {
                 detector.start();
             } catch (Exception e) {
                 Log.e(LOG_TAG, e.getMessage());
             }
         }
-    }
 
+    }
 
     @Override
     public void onFaceDetectionStarted() {
         leftMetricsLayout.animate().alpha(1); //make left and right metrics appear
         rightMetricsLayout.animate().alpha(1);
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
-
     }
 
     @Override
@@ -352,18 +362,17 @@ public class MainActivity extends Activity
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
 
-
     /**
      * This event is received every time the SDK processes a frame.
      */
     @Override
     public void onImageResults(List<Face> faces, Frame image, float timeStamp) {
         /**
-         * If the flag indicating that we need to size our layout is set, call calculateDimensions().
-         * The flag is a boolean stored in our drawingView object, retrieved through DrawingView.isDimensionsNeeded().
+         * If the flag indicating that we still need to know the size of the camera frames, call calculateImageDimensions().
+         * The flag is a boolean stored in our drawingView object, retrieved through DrawingView.isImageDimensionsNeeded().
          */
-        if (drawingView.isDimensionsNeeded() ) {
-            calculateDimensions(image);
+        if (drawingView.isImageDimensionsNeeded() ) {
+            calculateImageDimensions(image);
         }
 
         //If the faces object is null, we received an unprocessed frame
@@ -404,70 +413,50 @@ public class MainActivity extends Activity
     }
 
     /**
-     * This method serves two purposes:
-     * -It informs the drawing thread of the size of the frames passed by the CameraDetector object.
-     * -It corrects the dimensions of our mainLayout object to conform to the aspect ratio of the frames passed by the CameraDetector object.
+     * In this method, we update our drawingView to contain the dimensions of the frames coming from the camera so that drawingView
+     * can correctly draw the tracking dots. We also call drawingView.setThickness(), which sets the size of the tracking dots and the
+     * thickness of the bounding box.
      */
-    void calculateDimensions(Frame image){
-        //Log.i(LOG_TAG,"Dimensions being re-calculated");
-        float screenWidth = activityLayout.getWidth();
-        float screenHeight = activityLayout.getHeight();
-        float referenceDimension = screenHeight; //referenceDimension will be used to determine the size of the facial tracking dots
+    void calculateImageDimensions(Frame image){
+        ///referenceDimension will be used to determine the size of the facial tracking dots
+        float referenceDimension = activityLayout.getHeight();
 
         //get size of frames being passed by camera
-        float imageWidth = image.getWidth();
-        float imageHeight = image.getHeight();
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
 
         /**
          * If device is rotated vertically, reverse the width and height returned by the Frame object,
          * and switch the dimension we consider to be the reference dimension.
         */
         if ((ROTATE.BY_90_CW == image.getTargetRotation()) || (ROTATE.BY_90_CCW == image.getTargetRotation())) {
-            float temp = imageWidth;
+            int temp = imageWidth;
             imageWidth = imageHeight;
             imageHeight = temp;
 
-            referenceDimension = screenWidth;
+            referenceDimension = activityLayout.getWidth();
         }
 
-        /**
-         * In this section, we resize our layouts so that the SurfaceView displaying the camera images to will have the same
-         * aspect ratio as the frames we are receiving from the camera.
-         * Since all elements in our app are inside 'mainLayout', we just have to adjust the height and width of this layout.
-         */
-
-        //calculate aspect ratios of camera frames and screen
-        float imageAspectRatio = imageWidth/imageHeight;
-        float screenAspectRatio = screenWidth/screenHeight;
-        float screenToImageRatio = 0;
-        int newLayoutHeight = 0;
-        int newLayoutWidth = 0;
-
-        if (screenAspectRatio < imageAspectRatio) {
-            newLayoutHeight = (int) (screenWidth / imageAspectRatio);
-            screenToImageRatio = screenWidth / imageWidth;
-            newLayoutWidth = (int)screenWidth;
-        } else {
-            newLayoutWidth =  (int) (screenHeight * imageAspectRatio);
-            screenToImageRatio = screenHeight/imageHeight;
-            newLayoutHeight = (int)screenHeight;
-        }
+        drawingView.updateImageDimensions(imageWidth,imageHeight);
+        drawingView.setThickness((int)(referenceDimension/160f));
+    }
 
 
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mainLayout.getLayoutParams();
-        params.height = newLayoutHeight;
-        params.width = newLayoutWidth;
+    /**
+     * This method is called when the SDK has corrected the aspect ratio of the SurfaceView. We use this information to resize
+     * our mainLayout ViewGroup so the UI fits snugly around the SurfaceView. We also update our drawingView object, so the tracking dots
+     * are drawn in the correct coordinates.
+     */
+    @Override
+    public void onSurfaceViewAspectRatioChanged(int width, int height) {
+        drawingView.updateSurfaceViewDimensions(width,height);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mainLayout.getLayoutParams();
+        params.height = height;
+        params.width = width;
         mainLayout.setLayoutParams(params);
 
-        /**
-         * Send necessary dimensions to the drawing thread.
-         * The dimensions are: width of frame, height of frame, ratio of screen to frame size, and thickness of facial tracking dots.
-         * This method will clear the flag that indicates whether we need to calculate dimensions, so this calculateDimensions()
-         * will not be continuously called.
-         */
-        drawingView.setDimensions((int) imageWidth, (int) imageHeight, screenToImageRatio, referenceDimension / 160);
-
-        //Now that the aspect ratio has been corrected, remove the progress bar from obscuring the screen
+        //Now that our main layout has been resized, we can remove the progress bar that was obscuring the screen (its purpose was to obscure the resizing of the SurfaceView)
         progressBarLayout.setVisibility(View.GONE);
     }
 
@@ -496,22 +485,18 @@ public class MainActivity extends Activity
     @Override
     public void onPause() {
         super.onPause();
-        saveApplicationSettings();
         progressBarLayout.setVisibility(View.VISIBLE);
+        saveApplicationSettings();
         stopCamera();
     }
 
     private void stopCamera() {
         performFaceDetectionStoppedTasks();
-
-        if (null != detector) {
-            try {
-                detector.stop();
-            } catch (Exception e) {
-                Log.e("AffdexMe", e.getMessage());
-            }
+        try {
+            detector.stop();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
         }
-        detector = null; //setting detector to null will allow startCamera() to recreate the detector object when the application is reopened.
     }
 
     /**
