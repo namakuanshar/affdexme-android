@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="fps"
+        android:title="Show FPS"
+        android:summary="Display the actual processed frames per second."
+        android:defaultValue="false"/>
+    <CheckBoxPreference
+        android:key="measurements"
+        android:title="Show Measurements"
+        android:summary="Display roll, yaw, pitch, and inter-ocular distance."
+        android:defaultValue="false"/>
+    <CheckBoxPreference
+        android:key="track"
+        android:title="Show Tracking"
+        android:summary="Display tracking dots and bounding box."
+        android:defaultValue="true"/>
+    <EditTextPreference
+        android:key="rate"
+        android:inputType="number"
+        android:ems="3"
+        android:maxLength="2"
+        android:title="Processed Frames Per Second"
+        android:summary="Enter the desired processed frames per second."
+        android:dialogTitle="Processed Frames Per Second"
+        android:defaultValue="20"/>
+</PreferenceScreen>

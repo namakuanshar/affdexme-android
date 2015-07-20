@@ -22,6 +22,7 @@ android {
 dependencies {
 	//gson is necessary for the license to be parsed
     compile 'com.google.code.gson:gson:2.3'
+
 	
 	//include the Affdex SDK jars
     compile files('libs/Affdex-sdk-1.2-SNAPSHOT.jar')

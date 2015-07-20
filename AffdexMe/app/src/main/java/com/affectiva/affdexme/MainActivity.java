@@ -1,12 +1,13 @@
 package com.affectiva.affdexme;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -15,10 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -67,37 +66,32 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 
 public class MainActivity extends Activity
-        implements Detector.FaceListener, Detector.ImageListener, TextView.OnEditorActionListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
+        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
 
     private static final String LOG_TAG = "Affectiva";
     //Affectiva SDK Object
     private CameraDetector detector = null;
+    //TODO: License file in byte form. Should NOT be included in released sample code.
+    private byte[] licenseBytes = {123,34,116,111,107,101,110,34,58,32,34,102,98,51,51,101,102,57,98,102,98,49,57,53,100,97,99,55,97,53,99,48,98,50,56,54,54,51,51,48,56,52,100,102,56,48,57,55,52,101,99,99,57,98,51,54,97,97,101,51,57,99,97,51,98,97,53,54,57,50,49,102,56,49,53,34,44,34,108,105,99,101,110,115,111,114,34,58,32,34,65,102,102,101,99,116,105,118,97,32,73,110,99,46,34,44,34,101,120,112,105,114,101,115,34,58,32,34,50,48,57,57,45,48,49,45,48,49,34,44,34,100,101,118,101,108,111,112,101,114,73,100,34,58,32,34,65,102,102,101,99,116,105,118,97,45,105,110,116,101,114,110,97,108,34,44,34,115,111,102,116,119,97,114,101,34,58,32,34,65,102,102,100,101,120,32,83,68,75,34,125};
 
     //Metrics View UI Objects
     private RelativeLayout metricViewLayout;
     private LinearLayout leftMetricsLayout;
     private LinearLayout rightMetricsLayout;
-    private MetricView smilePct;
-    private MetricView browRaisePct;
-    private MetricView browFurrowPct;
-    private MetricView frownPct;
-    private MetricView valencePct;
-    private MetricView engagementPct;
+    private MetricView metricPct1;
+    private MetricView metricPct2;
+    private MetricView metricPct3;
+    private MetricView metricPct4;
+    private MetricView metricPct5;
+    private MetricView metricPct6;
     private TextView fpsName;
     private TextView fpsPct;
-    private TextView smileName;
-    private TextView browRaiseName;
-    private TextView browFurrowName;
-    private TextView frownName;
-    private TextView valenceName;
-    private TextView engagementName;
-
-    //Menu UI Objects
-    private RelativeLayout menuLayout;
-    private EditText fpsEditText;
-    private CheckBox fpsCheckbox;
-    private CheckBox trackingCheckbox;
-    private TextView fpsEditTextName;
+    private TextView metricName1;
+    private TextView metricName2;
+    private TextView metricName3;
+    private TextView metricName4;
+    private TextView metricName5;
+    private TextView metricName6;
 
     //Other UI objects
     private ViewGroup activityLayout; //top-most ViewGroup in which all content resides
@@ -105,6 +99,7 @@ public class MainActivity extends Activity
     private RelativeLayout progressBarLayout; //layout used to show progress circle while camera is starting
     private SurfaceView cameraView; //SurfaceView used to display camera images
     private DrawingView drawingView; //SurfaceView containing its own thread, used to draw facial tracking dots
+    private ImageButton settingsButton;
 
     //The Shared Preferences object is used to restore/save settings when activity is created/destroyed
     private final String PREFS_NAME = "AffdexMe";
@@ -121,6 +116,12 @@ public class MainActivity extends Activity
     private long timeToUpdate = 0;
 
     private boolean isFrontFacingCameraDetected = true;
+
+
+    final static int NUM_METRICS_TO_SHOW = 6;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +146,7 @@ public class MainActivity extends Activity
     }
 
     void initializeUI() {
+        //TODO: what to do about valence?
 
         //Get handles to UI objects
         activityLayout = (ViewGroup) findViewById(android.R.id.content);
@@ -153,47 +155,41 @@ public class MainActivity extends Activity
         leftMetricsLayout = (LinearLayout) findViewById(R.id.left_metrics);
         rightMetricsLayout = (LinearLayout) findViewById(R.id.right_metrics);
         mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
-        menuLayout = (RelativeLayout) findViewById(R.id.affdexme_menu);
-        smilePct = (MetricView) findViewById(R.id.smile_pct);
-        browRaisePct = (MetricView) findViewById(R.id.brow_raise_pct);
-        browFurrowPct = (MetricView) findViewById(R.id.brow_furrow_pct);
-        frownPct = (MetricView) findViewById(R.id.frown_pct);
-        valencePct = (MetricView) findViewById(R.id.valence_pct);
-        engagementPct = (MetricView) findViewById(R.id.engagement_pct);
+        metricPct1 = (MetricView) findViewById(R.id.metric_pct_1);
+        metricPct2 = (MetricView) findViewById(R.id.metric_pct_2);
+        metricPct3 = (MetricView) findViewById(R.id.metric_pct_3);
+        metricPct4 = (MetricView) findViewById(R.id.metric_pct_4);
+        metricPct5 = (MetricView) findViewById(R.id.metric_pct_5);
+        metricPct6 = (MetricView) findViewById(R.id.metric_pct_6);
         fpsPct = (TextView) findViewById(R.id.fps_value);
-        smileName = (TextView) findViewById(R.id.smile_name);
-        browRaiseName = (TextView) findViewById(R.id.brow_raise_name);
-        browFurrowName = (TextView) findViewById(R.id.brow_furrow_name);
-        frownName = (TextView) findViewById(R.id.frown_name);
-        valenceName = (TextView) findViewById(R.id.valence_name);
-        engagementName = (TextView) findViewById(R.id.engagement_name);
+        metricName1 = (TextView) findViewById(R.id.metric_name_1);
+        metricName2 = (TextView) findViewById(R.id.metric_name_2);
+        metricName3 = (TextView) findViewById(R.id.metric_name_3);
+        metricName4 = (TextView) findViewById(R.id.metric_name_4);
+        metricName5 = (TextView) findViewById(R.id.metric_name_5);
+        metricName6 = (TextView) findViewById(R.id.metric_name_6);
         fpsName = (TextView) findViewById(R.id.fps_name);
-        fpsEditText = (EditText) findViewById(R.id.fps_edittext);
-        fpsEditTextName = (TextView) findViewById(R.id.fps_edittext_name);
-        fpsCheckbox = (CheckBox) findViewById(R.id.fps_checkbox);
-        trackingCheckbox = (CheckBox) findViewById(R.id.tracking_checkbox);
         cameraView = (SurfaceView) findViewById(R.id.camera_preview);
         drawingView = (DrawingView) findViewById(R.id.drawing_view);
+        settingsButton = (ImageButton) findViewById(R.id.settings_button);
 
         //Load Application Font and set UI Elements to use it
         Typeface face = Typeface.createFromAsset(getAssets(), "fonts/Square.ttf");
-        smilePct.setTypeface(face);
-        browRaisePct.setTypeface(face);
-        browFurrowPct.setTypeface(face);
-        frownPct.setTypeface(face);
-        valencePct.setTypeface(face);
-        engagementPct.setTypeface(face);
-        smileName.setTypeface(face);
-        browRaiseName.setTypeface(face);
-        browFurrowName.setTypeface(face);
-        frownName.setTypeface(face);
-        valenceName.setTypeface(face);
-        engagementName.setTypeface(face);
+        metricPct1.setTypeface(face);
+        metricPct2.setTypeface(face);
+        metricPct3.setTypeface(face);
+        metricPct4.setTypeface(face);
+        metricPct5.setTypeface(face);
+        metricPct6.setTypeface(face);
+        metricName1.setTypeface(face);
+        metricName2.setTypeface(face);
+        metricName3.setTypeface(face);
+        metricName4.setTypeface(face);
+        metricName5.setTypeface(face);
+        metricName6.setTypeface(face);
         fpsPct.setTypeface(face);
         fpsName.setTypeface(face);
-        fpsEditTextName.setTypeface(face);
-        fpsCheckbox.setTypeface(face);
-        trackingCheckbox.setTypeface(face);
+        drawingView.setTypeface(face);
 
         //Hide left and right metrics by default (will be made visible when face detection starts)
         leftMetricsLayout.setAlpha(0);
@@ -210,18 +206,6 @@ public class MainActivity extends Activity
 
         //Attach event listeners to the menu and edit box
         activityLayout.setOnTouchListener(this);
-        menuLayout.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                /*
-                 * This method effectively blocks the mainLayout from receiving a touch event
-                 * when the menu is pressed. This is to prevent the menu from closing if the user accidentally touches it
-                 * when aiming for a checkbox or edit box.
-                 */
-                return true;
-            }
-        });
-        fpsEditText.setOnEditorActionListener(this);
 
         /*
          * This app sets the View.SYSTEM_UI_FLAG_HIDE_NAVIGATION flag. Unfortunately, this flag causes
@@ -247,19 +231,16 @@ public class MainActivity extends Activity
          * that view will be painted with what the camera sees.
          */
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
+        //TODO: this method SHOULD NOT be included in sample code release (customer should enter their own license file).
+        detector.setLicenseStream(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(licenseBytes))));
 
         // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
         //detector.setLicensePath("YourLicenseFile");
 
-        // We want to detect all expressions, so turn on all classifiers.
-        detector.setDetectSmile(true);
-        detector.setDetectBrowFurrow(true);
-        detector.setDetectBrowRaise(true);
-        detector.setDetectEngagement(true);
-        detector.setDetectValence(true);
-        detector.setDetectLipCornerDepressor(true);
-
         detector.setMaxProcessRate(detectorProcessRate);
+
+        //this app will always detect gender
+        detector.setDetectGender(true);
 
         detector.setImageListener(this);
         detector.setFaceListener(this);
@@ -274,31 +255,164 @@ public class MainActivity extends Activity
         super.onResume();
         restoreApplicationSettings();
         setMenuVisible(false); //always make the menu invisible by default
+
     }
 
     /*
      * We use the Shared Preferences object to restore application settings.
      */
     public void restoreApplicationSettings() {
-        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        detectorProcessRate = sharedPreferences.getInt("rate", detectorProcessRate);   //restore camera processing rate
-        fpsEditText.setText(String.valueOf(detectorProcessRate));
+
+        String processRateString = sharedPreferences.getString("rate", "20");   //restore camera processing rate
+        detectorProcessRate = parseDetectorRateString(processRateString);
+        detector.setMaxProcessRate(detectorProcessRate);
+
 
         if (sharedPreferences.getBoolean("fps",isFPSVisible)) {    //restore isFPSMetricVisible
-            fpsCheckbox.setChecked(true);
             setFPSVisible(true);
         } else {
-            fpsCheckbox.setChecked(false);
             setFPSVisible(false);
         }
 
         if (sharedPreferences.getBoolean("track",drawingView.getDrawPointsEnabled())) {  //restore isTrackingDotsVisible
             setTrackPoints(true);
-            trackingCheckbox.setChecked(true);
         } else {
             setTrackPoints(false);
-            trackingCheckbox.setChecked(false);
+        }
+
+        if (sharedPreferences.getBoolean("measurements",drawingView.getDrawMeasurementsEnabled())) { //restore show measurements
+            setShowMeasurements(true);
+        } else {
+            setShowMeasurements(false);
+        }
+
+        //restore metric names
+        int metricCode = sharedPreferences.getInt("metric_1",0);
+        activateMetricAndMetricName(metricName1, metricPct1, metricCode);
+
+        metricCode = sharedPreferences.getInt("metric_2",1);
+        activateMetricAndMetricName(metricName2, metricPct2, metricCode);
+
+        metricCode = sharedPreferences.getInt("metric_3",2);
+        activateMetricAndMetricName(metricName3, metricPct3, metricCode);
+
+        metricCode = sharedPreferences.getInt("metric_4",3);
+        activateMetricAndMetricName(metricName4, metricPct4, metricCode);
+
+        metricCode = sharedPreferences.getInt("metric_5", 4);
+        activateMetricAndMetricName(metricName5, metricPct5, metricCode);
+
+        metricCode = sharedPreferences.getInt("metric_6",5);
+        activateMetricAndMetricName(metricName6, metricPct6, metricCode);
+
+        //TODO: remove this
+        detector.setDetectValence(true);
+
+    }
+
+    int parseDetectorRateString(String rateString) {
+        int toReturn;
+        try {
+            toReturn = Integer.parseInt(rateString);
+
+        } catch (Exception e) {
+            return 20;
+        }
+        if (toReturn > 0) {
+            return toReturn;
+        } else return 20;
+    }
+
+    void activateMetricAndMetricName(TextView metricName, MetricView metricView, int metricCode) {
+
+        metricView.setMetricToDisplay(metricCode);
+        metricName.setText(MetricsManager.getMetricName(metricCode));
+
+        if (metricCode == MetricsManager.VALENCE) {
+            metricView.setIsShadedMetricView(true);
+        } else {
+            metricView.setIsShadedMetricView(false);
+        }
+        
+        switch (metricCode) {
+            case MetricsManager.ANGER:
+                detector.setDetectAnger(true);
+                break;
+            case MetricsManager.CONTEMPT:
+                detector.setDetectContempt(true);
+                break;
+            case MetricsManager.DISGUST:
+                detector.setDetectDisgust(true);
+                break;
+            case MetricsManager.FEAR:
+                detector.setDetectFear(true);
+                break;
+            case MetricsManager.JOY:
+                detector.setDetectJoy(true);
+                break;
+            case MetricsManager.SADNESS:
+                detector.setDetectSadness(true);
+                break;
+            case MetricsManager.SURPRISE:
+                detector.setDetectSurprise(true);
+                break;
+            case MetricsManager.ATTENTION:
+                detector.setDetectAttention(true);
+                break;
+            case MetricsManager.BROW_FURROW:
+                detector.setDetectBrowFurrow(true);
+                break;
+            case MetricsManager.BROW_RAISE:
+                detector.setDetectBrowRaise(true);
+                break;
+            case MetricsManager.CHIN_RAISER:
+                detector.setDetectChinRaiser(true);
+                break;
+            case MetricsManager.ENGAGEMENT:
+                detector.setDetectEngagement(true);
+                break;
+            case MetricsManager.EYE_CLOSURE:
+                detector.setDetectEyeClosure(true);
+                break;
+            case MetricsManager.INNER_BROW_RAISER:
+                detector.setDetectInnerBrowRaiser(true);
+                break;
+            case MetricsManager.LIP_DEPRESSOR:
+                detector.setDetectLipDepressor(true);
+                break;
+            case MetricsManager.LIP_PRESS:
+                detector.setDetectLipPress(true);
+                break;
+            case MetricsManager.LIP_PUCKER:
+                detector.setDetectLipPucker(true);
+                break;
+            case MetricsManager.LIP_SUCK:
+                detector.setDetectLipSuck(true);
+                break;
+            case MetricsManager.MOUTH_OPEN:
+                detector.setDetectMouthOpen(true);
+                break;
+            case MetricsManager.NOSE_WRINKLER:
+                detector.setDetectNoseWrinkler(true);
+                break;
+            case MetricsManager.SMILE:
+                detector.setDetectSmile(true);
+                break;
+            case MetricsManager.SMIRK:
+                detector.setDetectSmirk(true);
+                break;
+            case MetricsManager.UPPER_LIP_RAISER:
+                detector.setDetectUpperLipRaiser(true);
+                break;
+            case MetricsManager.VALENCE:
+                detector.setDetectValence(true);
+                break;
+            default:
+                break;
+
+
         }
     }
 
@@ -347,6 +461,7 @@ public class MainActivity extends Activity
     public void onFaceDetectionStarted() {
         leftMetricsLayout.animate().alpha(1); //make left and right metrics appear
         rightMetricsLayout.animate().alpha(1);
+
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
 
@@ -358,6 +473,7 @@ public class MainActivity extends Activity
     void performFaceDetectionStoppedTasks() {
         leftMetricsLayout.animate().alpha(0); //make left and right metrics disappear
         rightMetricsLayout.animate().alpha(0);
+
         drawingView.invalidatePoints(); //inform the drawing thread that the latest facial tracking points are now invalid
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
@@ -393,22 +509,106 @@ public class MainActivity extends Activity
         Face face = faces.get(0);
 
         //update metrics with latest face information. The metrics are displayed on a MetricView, a custom view with a .setScore() method.
-        smilePct.setScore(face.getSmileScore());
-        browRaisePct.setScore(face.getBrowRaiseScore());
-        browFurrowPct.setScore(face.getBrowFurrowScore());
-        engagementPct.setScore(face.getEngagementScore());
-        frownPct.setScore(face.getLipCornerDepressorScore());
-        float valenceScore = face.getValenceScore();
-        valencePct.setScore(valenceScore);
+        updateMetricScore(metricPct1,face);
+        updateMetricScore(metricPct2,face);
+        updateMetricScore(metricPct3,face);
+        updateMetricScore(metricPct4,face);
+        updateMetricScore(metricPct5,face);
+        updateMetricScore(metricPct6,face);
 
         /**
          * If the user has selected to have facial tracking dots drawn, we use face.getFacePoints() to send those points
          * to our drawing thread and also inform the thread what the valence score was, as that will determine the color
          * of the bounding box.
         */
-        if (drawingView.getDrawPointsEnabled()) {
-            drawingView.setScore(valenceScore);
+        //TODO: what are you gonna do about valence?
+        if (drawingView.getDrawPointsEnabled() || drawingView.getDrawMeasurementsEnabled()) {
+            //TODO: get gender working
+            drawingView.setMetrics(face.measurements.getRoll(), face.measurements.getYaw(), face.measurements.getPitch(), face.measurements.getInterOcularDistance(), face.emotions.getValence(), face.appearence.getGender());
             drawingView.updatePoints(face.getFacePoints());
+        }
+    }
+
+    void updateMetricScore(MetricView metricView, Face face) {
+
+        int metricCode = metricView.getMetricToDisplay();
+
+        switch (metricCode) {
+            case MetricsManager.ANGER:
+                metricView.setScore(face.emotions.getAnger());
+                break;
+            case MetricsManager.CONTEMPT:
+                metricView.setScore(face.emotions.getContempt());
+                break;
+            case MetricsManager.DISGUST:
+                metricView.setScore(face.emotions.getDisgust());
+                break;
+            case MetricsManager.FEAR:
+                metricView.setScore(face.emotions.getFear());
+                break;
+            case MetricsManager.JOY:
+                metricView.setScore(face.emotions.getJoy());
+                break;
+            case MetricsManager.SADNESS:
+                metricView.setScore(face.emotions.getSadness());
+                break;
+            case MetricsManager.SURPRISE:
+                metricView.setScore(face.emotions.getSurprise());
+                break;
+            case MetricsManager.ATTENTION:
+                metricView.setScore(face.expressions.getAttention());
+                break;
+            case MetricsManager.BROW_FURROW:
+                metricView.setScore(face.expressions.getBrowFurrow());
+                break;
+            case MetricsManager.BROW_RAISE:
+                metricView.setScore(face.expressions.getBrowRaise());
+                break;
+            case MetricsManager.CHIN_RAISER:
+                metricView.setScore(face.expressions.getChinRaiser());
+                break;
+            case MetricsManager.ENGAGEMENT:
+                metricView.setScore(face.emotions.getEngagement());
+                break;
+            case MetricsManager.EYE_CLOSURE:
+                metricView.setScore(face.expressions.getEyeClosure());
+                break;
+            case MetricsManager.INNER_BROW_RAISER:
+                metricView.setScore(face.expressions.getInnerBrowRaiser());
+                break;
+            case MetricsManager.LIP_DEPRESSOR:
+                metricView.setScore(face.expressions.getLipDepressor());
+                break;
+            case MetricsManager.LIP_PRESS:
+                metricView.setScore(face.expressions.getLipPress());
+                break;
+            case MetricsManager.LIP_PUCKER:
+                metricView.setScore(face.expressions.getLipPucker());
+                break;
+            case MetricsManager.LIP_SUCK:
+                metricView.setScore(face.expressions.getLipSuck());
+                break;
+            case MetricsManager.MOUTH_OPEN:
+                metricView.setScore(face.expressions.getMouthOpen());
+                break;
+            case MetricsManager.NOSE_WRINKLER:
+                metricView.setScore(face.expressions.getNoseWrinkler());
+                break;
+            case MetricsManager.SMILE:
+                metricView.setScore(face.expressions.getSmile());
+                break;
+            case MetricsManager.SMIRK:
+                metricView.setScore(face.expressions.getSmirk());
+                break;
+            case MetricsManager.UPPER_LIP_RAISER:
+                metricView.setScore(face.expressions.getUpperLipRaiser());
+                break;
+            case MetricsManager.VALENCE:
+                metricView.setScore(face.emotions.getValence());
+                break;
+            default:
+                metricView.setScore(0f);
+                break;
         }
     }
 
@@ -437,8 +637,8 @@ public class MainActivity extends Activity
             referenceDimension = activityLayout.getWidth();
         }
 
-        drawingView.updateImageDimensions(imageWidth,imageHeight);
-        drawingView.setThickness((int)(referenceDimension/160f));
+        drawingView.updateImageDimensions(imageWidth, imageHeight);
+        drawingView.setThickness((int) (referenceDimension / 160f));
     }
 
 
@@ -486,7 +686,8 @@ public class MainActivity extends Activity
     public void onPause() {
         super.onPause();
         progressBarLayout.setVisibility(View.VISIBLE);
-        saveApplicationSettings();
+        detector.setAllEmotions(false);
+        detector.setAllExpressions(false);
         stopCamera();
     }
 
@@ -499,49 +700,6 @@ public class MainActivity extends Activity
         }
     }
 
-    /**
-     * We use the SharedPreferences object to save application settings.
-    **/
-    public void saveApplicationSettings() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("fps", isFPSVisible);
-        editor.putBoolean("track", drawingView.getDrawPointsEnabled());
-        editor.putInt("rate", detectorProcessRate);
-        editor.commit();
-    }
-
-    public void fps_checkbox_click(View view) {
-        setFPSVisible(((CheckBox) view).isChecked());
-    }
-
-    public void tracking_checkbox_click(View view) {
-        setTrackPoints(((CheckBox) view).isChecked());
-    }
-
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        /**
-         * When a user has selected  the Edit box to change the number of frames the detector processes per second
-         * and presses the 'DONE' button, the below block will be executed.
-         * */
-        if (actionId == EditorInfo.IME_ACTION_DONE) {
-            int parsedInt = 0;
-            try {
-                parsedInt = Integer.parseInt(v.getText().toString());
-            } catch (Exception e) {
-                v.setText(String.valueOf(detectorProcessRate));
-                return false;
-            }
-            if (parsedInt > 0) {
-                detectorProcessRate = parsedInt;
-                detector.setMaxProcessRate(detectorProcessRate);
-                resetFPSCalculations(); //reset FPS variables, since changing the process rate should change the FPS.
-            } else {
-                v.setText(String.valueOf(detectorProcessRate));
-            }
-        }
-        return false; //return false regardless, so Android closes the keyboard when user presses 'DONE'
-    }
 
     /**
      * When the user taps the screen, hide the menu if it is visible and show it if it is hidden.
@@ -549,7 +707,7 @@ public class MainActivity extends Activity
     void setMenuVisible(boolean b){
         isMenuVisible = b;
         if (b) {
-            menuLayout.setVisibility(View.VISIBLE);
+            settingsButton.setVisibility(View.VISIBLE);
 
             //We display the navigation bar again
             getWindow().getDecorView().setSystemUiVisibility(
@@ -558,9 +716,6 @@ public class MainActivity extends Activity
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
         else {
-            InputMethodManager imm = (InputMethodManager)getSystemService(
-                    Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(fpsEditText.getWindowToken(), 0);
 
             //We hide the navigation bar
             getWindow().getDecorView().setSystemUiVisibility(
@@ -572,7 +727,7 @@ public class MainActivity extends Activity
                             | View.SYSTEM_UI_FLAG_IMMERSIVE);
 
 
-            menuLayout.setVisibility(View.INVISIBLE);
+            settingsButton.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -594,6 +749,10 @@ public class MainActivity extends Activity
         drawingView.setDrawPointsEnabled(b);
     }
 
+    void setShowMeasurements(boolean b) {
+        drawingView.setDrawMeasurementsEnabled(b);
+    }
+
     void setFPSVisible(boolean b) {
         isFPSVisible = b;
         if (b) {
@@ -611,6 +770,10 @@ public class MainActivity extends Activity
             setMenuVisible(!isMenuVisible);
         }
         return false;
+    }
+
+    public void settings_button_click(View view) {
+        startActivity(new Intent(this,EditPreferences.class));
     }
 }
 

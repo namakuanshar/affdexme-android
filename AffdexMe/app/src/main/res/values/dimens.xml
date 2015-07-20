@@ -5,6 +5,23 @@
     <dimen name="metric_view_bar_length">80dp</dimen>
     <dimen name="bottom_padding">5dp</dimen>
     <dimen name="metric_viewgroup">140dp</dimen>
-    <dimen name="image_width">120dp</dimen>
+    <dimen name="logo_width">120dp</dimen>
     <dimen name="metric_panel_padding">10dp</dimen>
+
+    <!--TODO: create dimensions for other screen sizes -->
+    <dimen name="settings_button_width">48dp</dimen>
+    <dimen name="settings_button_height">48dp</dimen>
+    <dimen name="settings_button_margin">10dp</dimen>
+
+    <dimen name="grid_item_chooser_text_size">15sp</dimen>
+
+    <dimen name="measurements_text_size">17sp</dimen>
+    <dimen name="measurements_upper_text_spacing">60dp</dimen>
+    <dimen name="measurements_lower_text_spacing">80dp</dimen>
+    <integer name="drawing_view_text_border_thickness">3</integer>
+
+    <dimen name="metric_chooser_column_width">110dp</dimen>
+
+    <dimen name="grid_item_checkbox_size">30dp</dimen>
+
 </resources>
