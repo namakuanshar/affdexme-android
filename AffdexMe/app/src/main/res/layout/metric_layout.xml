@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:affdex="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_height="@dimen/metric_viewgroup"
     android:layout_width="match_parent"
@@ -16,8 +15,9 @@
         android:layout_width="@dimen/logo_width"
         android:layout_centerInParent="true"
         android:src="@drawable/affectiva_logo_clear_background"
+        android:contentDescription="@string/affectiva_logo_content_description"
         android:id="@+id/affectiva_logo" />
-    <!-- Left Metrics-->
+    <!-- Left MetricsManager-->
     <LinearLayout
         android:orientation="vertical"
         android:paddingLeft="@dimen/metric_panel_padding"
@@ -27,23 +27,23 @@
         android:id="@+id/left_metrics">
         <TextView
             style="@style/metricName"
-            android:id="@+id/metric_name_1"
+            android:id="@+id/metric_name_0"
             />
-        <com.affectiva.affdexme.MetricView
+        <com.affectiva.affdexme.MetricDisplay
+            style="@style/metricPct"
+            android:id="@+id/metric_pct_0" />
+        <TextView
+            style="@style/metricName"
+            android:id="@+id/metric_name_1" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
             android:id="@+id/metric_pct_1" />
         <TextView
             style="@style/metricName"
             android:id="@+id/metric_name_2" />
-        <com.affectiva.affdexme.MetricView
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
             android:id="@+id/metric_pct_2" />
-        <TextView
-            style="@style/metricName"
-            android:id="@+id/metric_name_3" />
-        <com.affectiva.affdexme.MetricView
-            style="@style/metricPct"
-            android:id="@+id/metric_pct_3" />
     </LinearLayout>
     <!-- FPS Counter-->
     <LinearLayout
@@ -71,7 +71,7 @@
             android:layout_weight="1"
             />
     </LinearLayout>
-    <!-- Right Metrics-->
+    <!-- Right MetricsManager-->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
@@ -81,21 +81,21 @@
         android:id="@+id/right_metrics">
         <TextView
             style="@style/metricName"
+            android:id="@+id/metric_name_3" />
+        <com.affectiva.affdexme.MetricDisplay
+            style="@style/metricPct"
+            android:id="@+id/metric_pct_3" />
+        <TextView
+            style="@style/metricName"
             android:id="@+id/metric_name_4" />
-        <com.affectiva.affdexme.MetricView
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
             android:id="@+id/metric_pct_4" />
         <TextView
             style="@style/metricName"
             android:id="@+id/metric_name_5" />
-        <com.affectiva.affdexme.MetricView
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
             android:id="@+id/metric_pct_5" />
-        <TextView
-            style="@style/metricName"
-            android:id="@+id/metric_name_6" />
-        <com.affectiva.affdexme.MetricView
-            style="@style/metricPct"
-            android:id="@+id/metric_pct_6" />
     </LinearLayout>
 </RelativeLayout>

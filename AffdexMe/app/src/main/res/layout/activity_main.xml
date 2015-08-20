@@ -28,18 +28,19 @@
             custom:measurements_lower_spacing="@dimen/measurements_lower_text_spacing"
             custom:measurements_color="#DDDDDD"
             custom:measurements_text_border_color="@color/letter_gray"
-            custom:measurements_text_border_thickness="@integer/drawing_view_text_border_thickness"
+            custom:measurements_text_border_thickness="@integer/measurements_text_border_thickness"
             android:id="@+id/drawing_view"/>
         <include layout="@layout/metric_layout"
             android:id="@+id/metric_view_group"
             />
         <ImageButton
-            android:layout_width="@dimen/settings_button_width"
-            android:layout_height="@dimen/settings_button_height"
+            android:layout_width="@dimen/settings_button_size"
+            android:layout_height="@dimen/settings_button_size"
             android:background="@null"
-            android:scaleType="fitCenter"
             android:src="@drawable/settings_button_selector"
+            android:scaleType="fitCenter"
             android:layout_margin="@dimen/settings_button_margin"
+            android:contentDescription="@string/settings_content_description"
             android:layout_alignParentRight="true"
             android:layout_below="@id/metric_view_group"
             android:id="@+id/settings_button"
@@ -51,12 +52,24 @@
         android:layout_height="match_parent"
         android:id="@+id/progress_bar_cover"
         android:background="@color/black">
-        <ProgressBar
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@android:style/Widget.DeviceDefault.ProgressBar"
-            android:layout_centerInParent="true"
-            android:indeterminate="true"/>
+            android:layout_centerVertical="true"
+            android:id="@+id/please_wait_textview"
+            android:text="@string/loading"
+            android:textSize="@dimen/please_wait_textview_size"
+            android:layout_centerHorizontal="true"
+            />
+        <ProgressBar
+            android:layout_width="@dimen/please_wait_textview_size"
+            android:layout_height="@dimen/please_wait_textview_size"
+            android:layout_toLeftOf="@id/please_wait_textview"
+            android:layout_centerVertical="true"
+            android:indeterminate="true"
+            android:paddingRight="10dp"
+            android:id="@+id/progress_bar"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"

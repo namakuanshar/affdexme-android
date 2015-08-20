@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
-    <header android:fragment="com.affectiva.affdexme.EditPreferences$SettingsFragment"
-        android:title="Settings"
-        android:summary="Change application settings." />
-
-    <header
-        android:title="Select Classifiers"
-        android:summary="Select emotions and expressions to display.">
-        <intent android:action="com.affectiva.affdexme.CHOOSE_METRICS" />
-    </header>
-
+    <header android:fragment="com.affectiva.affdexme.SettingsActivity$SettingsFragment"
+        android:title="@string/settings_title"
+        android:summary="@string/settings_message" />
+    <header android:fragment="com.affectiva.affdexme.MetricSelectionFragment"
+        android:title="@string/select_metrics_title"
+        android:summary="@string/select_metrics_message" />
 </preference-headers>

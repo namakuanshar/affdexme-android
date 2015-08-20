@@ -18,10 +18,6 @@ import android.view.SurfaceView;
 
 import com.affectiva.android.affdex.sdk.detector.Face;
 
-import org.w3c.dom.Attr;
-
-import java.lang.reflect.Type;
-
 
 /**
  * This class contains a SurfaceView and its own thread that draws to it.
@@ -45,7 +41,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         String yaw = "";
         String pitch = "";
         String interOcDis = "";
-        String gender = "";
 
         public DrawingThread(SurfaceHolder surfaceHolder, DrawingViewConfig con) {
             mSurfaceHolder = surfaceHolder;
@@ -61,23 +56,14 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             setThickness(config.drawThickness);
         }
 
-        void setMetrics(float roll, float yaw, float pitch, float interOcDis, float valence, Face.Gender gender) {
+        void setMetrics(float roll, float yaw, float pitch, float interOcDis, float valence) {
+            //format string for our DrawingView to use when ready
             this.roll = String.format("%.2f",roll);
             this.yaw = String.format("%.2f",yaw);
             this.pitch = String.format("%.2f",pitch);
             this.interOcDis = String.format("%.2f",interOcDis);
-            switch (gender) {
-                case Male:
-                    this.gender = "MALE";
-                    break;
-                case Female:
-                        this.gender = "FEMALE";
-                    break;
-                default:
-                    this.gender = "UNKNOWN";
 
-            }
-
+            //prepare the color of the bounding box using the valence score. Red for -100, White for 0, and Green for +100, with linear interpolation in between.
             if (valence > 0) {
                 float colorScore = ((100f-valence)/100f)*255;
                 boxPaint.setColor(Color.rgb((int)colorScore,255,(int)colorScore));
@@ -156,7 +142,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         void draw(Canvas c) {
             //Save our own reference to the list of points, in case the previous reference is overwritten by the main thread.
-            PointF[] rawPoints = nextPointsToDraw;
+            PointF[] points = nextPointsToDraw;
 
             //Coordinates around which to draw bounding box.
             float leftBx = config.surfaceViewWidth;
@@ -164,10 +150,12 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             float topBx = config.surfaceViewHeight;
             float botBx = 0;
 
-            for (int i = 0; i < rawPoints.length; i++) {
+            for (int i = 0; i < points.length; i++) {
 
-                float x = (config.imageWidth - rawPoints[i].x - 1) * config.screenToImageRatio;
-                float y = (rawPoints[i].y)* config.screenToImageRatio;
+                //transform from the camera coordinates to our screen coordinates
+                //The camera preview is displayed as a mirror, so X pts have to be mirrored back.
+                float x = (config.imageWidth - points[i].x - 1) * config.screenToImageRatio;
+                float y = (points[i].y)* config.screenToImageRatio;
 
                 //We determine the left-most, top-most, right-most, and bottom-most points to draw the bounding box around.
                 if (x < leftBx)
@@ -180,7 +168,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                     botBx = y;
 
                 //Draw facial tracking dots.
-                //The camera preview is displayed as a mirror, so X pts have to be reversed
                 if (config.isDrawPointsEnabled) {
                     c.drawCircle(x, y, config.drawThickness, circlePaint);
                 }
@@ -191,41 +178,33 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                 c.drawRect(leftBx, topBx, rightBx, botBx, boxPaint);
             }
 
+            //Draw the measurement metrics, with a dark border around the words to make them visible for users of all skin colors.
             if (config.isDrawMeasurementsEnabled) {
                 float centerBx = (leftBx + rightBx) / 2;
 
                 float upperText = topBx - TEXT_RAISE;
-                c.drawText("PITCH", centerBx, upperText - config.textSize,config.dropShadowPaint);
+                c.drawText("PITCH", centerBx, upperText - config.textSize,config.textBorderPaint);
                 c.drawText("PITCH", centerBx, upperText - config.textSize, config.textPaint);
-                c.drawText(pitch,centerBx ,upperText ,config.dropShadowPaint);
+                c.drawText(pitch,centerBx ,upperText ,config.textBorderPaint);
                 c.drawText(pitch, centerBx, upperText, config.textPaint);
 
                 float upperLeft = centerBx - config.upperTextSpacing;
 
-                c.drawText("YAW", upperLeft , upperText - config.textSize , config.dropShadowPaint);
+                c.drawText("YAW", upperLeft , upperText - config.textSize , config.textBorderPaint);
                 c.drawText("YAW", upperLeft, upperText - config.textSize, config.textPaint);
-                c.drawText(yaw, upperLeft , upperText , config.dropShadowPaint);
+                c.drawText(yaw, upperLeft , upperText , config.textBorderPaint);
                 c.drawText(yaw, upperLeft, upperText, config.textPaint);
 
                 float upperRight = centerBx + config.upperTextSpacing;
-                c.drawText("ROLL", upperRight , upperText - config.textSize , config.dropShadowPaint);
+                c.drawText("ROLL", upperRight , upperText - config.textSize , config.textBorderPaint);
                 c.drawText("ROLL", upperRight, upperText - config.textSize, config.textPaint);
-                c.drawText(roll, upperRight , upperText , config.dropShadowPaint);
+                c.drawText(roll, upperRight , upperText , config.textBorderPaint);
                 c.drawText(roll, upperRight, upperText, config.textPaint);
 
-                float lowerLeft = centerBx - config.lowerTextSpacing;
-
-                c.drawText("GENDER", lowerLeft , botBx + config.textSize , config.dropShadowPaint);
-                c.drawText("GENDER", lowerLeft, botBx + config.textSize, config.textPaint);
-                c.drawText(gender, lowerLeft , botBx + config.textSize*2 ,config.dropShadowPaint);
-                c.drawText(gender, lowerLeft, botBx + config.textSize * 2, config.textPaint);
-
-                float lowerRight = centerBx + config.lowerTextSpacing;
-
-                c.drawText("INTEROCULAR DISTANCE", lowerRight , botBx + config.textSize , config.dropShadowPaint);
-                c.drawText("INTEROCULAR DISTANCE", lowerRight, botBx + config.textSize, config.textPaint);
-                c.drawText(interOcDis,lowerRight , botBx + config.textSize*2 , config.dropShadowPaint);
-                c.drawText(interOcDis, lowerRight, botBx + config.textSize * 2, config.textPaint);
+                c.drawText("INTEROCULAR DISTANCE", centerBx , botBx + config.textSize , config.textBorderPaint);
+                c.drawText("INTEROCULAR DISTANCE", centerBx, botBx + config.textSize, config.textPaint);
+                c.drawText(interOcDis,centerBx , botBx + config.textSize*2 , config.textBorderPaint);
+                c.drawText(interOcDis, centerBx, botBx + config.textSize * 2, config.textPaint);
             }
 
 
@@ -246,16 +225,14 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         private Paint textPaint;
         private int textSize;
-        private Paint dropShadowPaint;
+        private Paint textBorderPaint;
         private int upperTextSpacing;
-        private int lowerTextSpacing;
 
-        public void setMeasurementMetricConfigs(Paint textPaint, Paint dropShadowPaint, int textSize, int upperTextSpacing, int lowerTextSpacing) {
+        public void setMeasurementMetricConfigs(Paint textPaint, Paint dropShadowPaint, int textSize, int upperTextSpacing) {
             this.textPaint = textPaint;
             this.textSize = textSize;
-            this.dropShadowPaint = dropShadowPaint;
+            this.textBorderPaint = dropShadowPaint;
             this.upperTextSpacing = upperTextSpacing;
-            this.lowerTextSpacing = lowerTextSpacing;
         }
 
         public void updateImageDimensions(int w, int h) {
@@ -327,7 +304,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         //default values
         int upperTextSpacing = 15;
-        int lowerTextSpacing = 15;
         int textSize = 15;
 
         Paint measurementTextPaint = new Paint();
@@ -343,7 +319,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs,R.styleable.drawing_view_attributes,0,0);
             upperTextSpacing = a.getDimensionPixelSize(R.styleable.drawing_view_attributes_measurements_upper_spacing,upperTextSpacing);
-            lowerTextSpacing = a.getDimensionPixelSize(R.styleable.drawing_view_attributes_measurements_lower_spacing,lowerTextSpacing);
             measurementTextPaint.setColor(a.getColor(R.styleable.drawing_view_attributes_measurements_color,Color.WHITE));
             dropShadow.setColor(a.getColor(R.styleable.drawing_view_attributes_measurements_text_border_color,Color.BLACK));
             dropShadow.setStrokeWidth(a.getInteger(R.styleable.drawing_view_attributes_measurements_text_border_thickness,5));
@@ -353,14 +328,14 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             a.recycle();
         }
 
-        drawingViewConfig.setMeasurementMetricConfigs(measurementTextPaint, dropShadow, textSize, upperTextSpacing, lowerTextSpacing);
+        drawingViewConfig.setMeasurementMetricConfigs(measurementTextPaint, dropShadow, textSize, upperTextSpacing);
 
         drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig);
     }
     
     public void setTypeface(Typeface face) {
         drawingViewConfig.textPaint.setTypeface(face);
-        drawingViewConfig.dropShadowPaint.setTypeface(face);
+        drawingViewConfig.textBorderPaint.setTypeface(face);
     }
 
     @Override
@@ -443,8 +418,8 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         return drawingViewConfig.isDrawMeasurementsEnabled;
     }
 
-    public void setMetrics(float roll, float yaw, float pitch, float interOcDis, float valence, Face.Gender gender) {
-        drawingThread.setMetrics(roll,yaw,pitch,interOcDis,valence,gender);
+    public void setMetrics(float roll, float yaw, float pitch, float interOcDis, float valence) {
+        drawingThread.setMetrics(roll,yaw,pitch,interOcDis,valence);
     }
 
     public void updatePoints(PointF[] points) {

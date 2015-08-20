@@ -1,42 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/affectiva_orange"
-    android:id="@+id/grid_item_container">
+    android:padding="5dp">
+    <RelativeLayout
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:id="@+id/grid_item_background"
+        android:paddingLeft="4dp" android:paddingBottom="8dp" android:paddingRight="4dp">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:id="@+id/grid_item_image_view"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/label"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="@dimen/grid_item_chooser_text_size"
-        android:layout_alignParentTop="true"
-        />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#990033"
-        />
-
-
-    <ImageView
-        android:layout_width="@dimen/grid_item_checkbox_size"
-        android:layout_height="@dimen/grid_item_checkbox_size"
-        android:src="@drawable/checkbox"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/grid_item_chooser_checkbox"
-        android:layout_margin="4dp"
-        />
-
-
-
-</RelativeLayout>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/grid_item_image_view_beneath"
+            />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/grid_item_image_view"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/grid_item_text"
+            android:textSize="@dimen/grid_item_metric_name"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:layout_alignParentTop="true"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/video_overlay"
+            android:textSize="@dimen/grid_item_chooser_text_size"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:padding="2dp"/>
+    </RelativeLayout>
+</FrameLayout>
