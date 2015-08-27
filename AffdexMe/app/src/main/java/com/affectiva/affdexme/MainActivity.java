@@ -67,15 +67,13 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 
 public class MainActivity extends Activity
-        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.OnCameraEventListener {
+        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
 
     private static final String LOG_TAG = "Affectiva";
     public static final int NUM_METRICS_DISPLAYED = 6;
 
     //Affectiva SDK Object
     private CameraDetector detector = null;
-    //TODO: License file in byte form. Should NOT be included in released sample code.
-    private byte[] licenseBytes = {123,34,116,111,107,101,110,34,58,32,34,102,98,51,51,101,102,57,98,102,98,49,57,53,100,97,99,55,97,53,99,48,98,50,56,54,54,51,51,48,56,52,100,102,56,48,57,55,52,101,99,99,57,98,51,54,97,97,101,51,57,99,97,51,98,97,53,54,57,50,49,102,56,49,53,34,44,34,108,105,99,101,110,115,111,114,34,58,32,34,65,102,102,101,99,116,105,118,97,32,73,110,99,46,34,44,34,101,120,112,105,114,101,115,34,58,32,34,50,48,57,57,45,48,49,45,48,49,34,44,34,100,101,118,101,108,111,112,101,114,73,100,34,58,32,34,65,102,102,101,99,116,105,118,97,45,105,110,116,101,114,110,97,108,34,44,34,115,111,102,116,119,97,114,101,34,58,32,34,65,102,102,100,101,120,32,83,68,75,34,125};
 
     //MetricsManager View UI Objects
     private RelativeLayout metricViewLayout;
@@ -95,7 +93,6 @@ public class MainActivity extends Activity
     private SurfaceView cameraView; //SurfaceView used to display camera images
     private DrawingView drawingView; //SurfaceView containing its own thread, used to draw facial tracking dots
     private ImageButton settingsButton;
-    private ImageButton cameraButton;
 
     //Application settings variables
     private int detectorProcessRate;
@@ -108,12 +105,7 @@ public class MainActivity extends Activity
     private float numberOfFrames = 0;
     private long timeToUpdate = 0;
 
-    //Camera-related variables
     private boolean isFrontFacingCameraDetected = true;
-    private boolean isBackFacingCameraDetected = true;
-    int cameraPreviewWidth = 0;
-    int cameraPreviewHeight = 0;
-    CameraDetector.CameraType cameraType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,33 +115,20 @@ public class MainActivity extends Activity
 
         initializeUI();
 
-        determineCameraAvailability();
-
-        initializeCameraDetector();
-    }
-
-    /**
-     * We check to make sure the device has a front-facing camera.
-     * If it does not, we obscure the app with a notice informing the user they cannot
-     * use the app.
-     */
-    void determineCameraAvailability() {
-        PackageManager manager = getPackageManager();
-        isFrontFacingCameraDetected = manager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
-        isBackFacingCameraDetected = manager.hasSystemFeature(PackageManager.FEATURE_CAMERA);
-
-        if (!isFrontFacingCameraDetected && !isBackFacingCameraDetected) {
+        /**
+         * We check to make sure the device has a front-facing camera.
+         * If it does not, we obscure the app with a notice informing the user they cannot
+         * use the app.
+         */
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+            isFrontFacingCameraDetected = false;
             progressBar.setVisibility(View.INVISIBLE);
             pleaseWaitTextView.setVisibility(View.INVISIBLE);
             TextView notFoundTextView = (TextView) findViewById(R.id.not_found_textview);
             notFoundTextView.setVisibility(View.VISIBLE);
         }
 
-        //TODO: change this to be taken from settings
-        if (isBackFacingCameraDetected)
-            cameraType = CameraDetector.CameraType.CAMERA_BACK;
-        if (isFrontFacingCameraDetected)
-            cameraType = CameraDetector.CameraType.CAMERA_FRONT;
+        initializeCameraDetector();
     }
 
     void initializeUI() {
@@ -166,7 +145,6 @@ public class MainActivity extends Activity
         cameraView = (SurfaceView) findViewById(R.id.camera_preview);
         drawingView = (DrawingView) findViewById(R.id.drawing_view);
         settingsButton = (ImageButton) findViewById(R.id.settings_button);
-        cameraButton = (ImageButton) findViewById(R.id.camera_button);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         pleaseWaitTextView = (TextView) findViewById(R.id.please_wait_textview);
 
@@ -238,14 +216,12 @@ public class MainActivity extends Activity
          * the camera. If a SurfaceView is passed in as the last argument to the constructor,
          * that view will be painted with what the camera sees.
          */
-        detector = new CameraDetector(this, cameraType, cameraView);
-        //TODO: this method SHOULD NOT be included in sample code release (customer should enter their own license file).
-        detector.setLicenseStream(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(licenseBytes))));
+        detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
         // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
         //detector.setLicensePath("YourLicenseFile");
         detector.setImageListener(this);
         detector.setFaceListener(this);
-        detector.setOnCameraEventListener(this);
+        detector.setCameraDetectorDimensionsListener(this);
     }
 
     /*
@@ -353,10 +329,8 @@ public class MainActivity extends Activity
     }
 
     void mainWindowResumedTasks() {
-
-        startDetector();
-
-        if (!drawingView.isDimensionsNeeded()) {
+        startCamera();
+        if (!drawingView.isSurfaceDimensionsNeeded()) {
             progressBarLayout.setVisibility(View.GONE);
         }
         resetFPSCalculations();
@@ -367,14 +341,14 @@ public class MainActivity extends Activity
                     setMenuVisible(false);
                 }
             }
-        }, 5000);
+        },5000);
     }
 
-    void startDetector() {
-        if (!isBackFacingCameraDetected && !isFrontFacingCameraDetected)
-            return; //without any cameras detected, we cannot proceed
+    void startCamera() {
 
-        detector.setDetectValence(true); //this app will always detect valence
+        //this app will always detect valence (it will also always detect measurements, but measurement don't need to be enabled)
+        detector.setDetectValence(true);
+
         if (!detector.isRunning()) {
             try {
                 detector.start();
@@ -382,9 +356,8 @@ public class MainActivity extends Activity
                 Log.e(LOG_TAG, e.getMessage());
             }
         }
+
     }
-
-
 
     @Override
     public void onFaceDetectionStarted() {
@@ -402,7 +375,8 @@ public class MainActivity extends Activity
     void performFaceDetectionStoppedTasks() {
         leftMetricsLayout.animate().alpha(0); //make left and right metrics disappear
         rightMetricsLayout.animate().alpha(0);
-        drawingView.updatePoints(null);
+
+        drawingView.invalidatePoints(); //inform the drawing thread that the latest facial tracking points are now invalid
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
 
@@ -411,6 +385,14 @@ public class MainActivity extends Activity
      */
     @Override
     public void onImageResults(List<Face> faces, Frame image, float timeStamp) {
+        /**
+         * If the flag indicating that we still need to know the size of the camera frames, call calculateImageDimensions().
+         * The flag is a boolean stored in our drawingView object, retrieved through DrawingView.isImageDimensionsNeeded().
+         */
+        if (drawingView.isImageDimensionsNeeded() ) {
+            calculateImageDimensions(image);
+        }
+
         //If the faces object is null, we received an unprocessed frame
         if (faces == null) {
             return;
@@ -421,7 +403,6 @@ public class MainActivity extends Activity
 
         //If faces.size() is 0, we received a frame in which no face was detected
         if (faces.size() == 0) {
-            drawingView.updatePoints(null); //the drawingView takes null points to mean it doesn't have to draw anything
             return;
         }
 
@@ -468,6 +449,54 @@ public class MainActivity extends Activity
     }
 
     /**
+     * In this method, we inform our drawingView of the size of the incoming camera images.
+     * We also set the thickness (which controls the size of the dots and bounding box) based on a reference thickness, which
+     * should be the same whether the device is landscape or portrait.
+     */
+    void calculateImageDimensions(Frame image){
+        ///referenceDimension will be used to determine the size of the facial tracking dots
+        float referenceDimension = activityLayout.getHeight();
+
+        //get size of frames being passed by camera
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+
+        /**
+         * If device is rotated vertically, reverse the width and height returned by the Frame object,
+         * and switch the dimension we consider to be the reference dimension.
+        */
+        if ((ROTATE.BY_90_CW == image.getTargetRotation()) || (ROTATE.BY_90_CCW == image.getTargetRotation())) {
+            int temp = imageWidth;
+            imageWidth = imageHeight;
+            imageHeight = temp;
+
+            referenceDimension = activityLayout.getWidth();
+        }
+
+        drawingView.updateImageDimensions(imageWidth, imageHeight);
+        drawingView.setThickness((int) (referenceDimension / 160f));
+    }
+
+
+    /**
+     * This method is called when the SDK has corrected the aspect ratio of the SurfaceView. We use this information to resize
+     * our mainLayout ViewGroup so the UI fits snugly around the SurfaceView. We also update our drawingView object, so the tracking dots
+     * are drawn in the correct coordinates.
+     */
+    @Override
+    public void onSurfaceViewAspectRatioChanged(int width, int height) {
+        drawingView.updateSurfaceViewDimensions(width,height);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mainLayout.getLayoutParams();
+        params.height = height;
+        params.width = width;
+        mainLayout.setLayoutParams(params);
+
+        //Now that our main layout has been resized, we can remove the progress bar that was obscuring the screen (its purpose was to obscure the resizing of the SurfaceView)
+        progressBarLayout.setVisibility(View.GONE);
+    }
+
+    /**
      * FPS measurement simply uses SystemClock to measure how many frames were processed since
      * the FPS variables were last reset.
      * The constants 1000L and 1000f appear because .elapsedRealtime() measures time in milliseconds.
@@ -493,25 +522,21 @@ public class MainActivity extends Activity
     public void onPause() {
         super.onPause();
         progressBarLayout.setVisibility(View.VISIBLE);
-
-        performFaceDetectionStoppedTasks();
-
-        stopDetector();
+        stopCamera();
     }
 
-    void stopDetector() {
-        if (detector.isRunning()) {
-            try {
-                detector.stop();
-            } catch (Exception e) {
-                Log.e(LOG_TAG,e.getMessage());
-            }
-        }
+    private void stopCamera() {
+        performFaceDetectionStoppedTasks();
 
         detector.setDetectAllEmotions(false);
         detector.setDetectAllExpressions(false);
-    }
 
+        try {
+            detector.stop();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
+        }
+    }
 
 
     /**
@@ -522,7 +547,6 @@ public class MainActivity extends Activity
         isMenuVisible = b;
         if (b) {
             settingsButton.setVisibility(View.VISIBLE);
-            cameraButton.setVisibility(View.VISIBLE);
 
             //We display the navigation bar again
             getWindow().getDecorView().setSystemUiVisibility(
@@ -543,7 +567,6 @@ public class MainActivity extends Activity
 
 
             settingsButton.setVisibility(View.INVISIBLE);
-            cameraButton.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -590,86 +613,6 @@ public class MainActivity extends Activity
 
     public void settings_button_click(View view) {
         startActivity(new Intent(this,SettingsActivity.class));
-    }
-
-    @Override
-    public void onCameraStarted(boolean b, Throwable throwable) {
-        if (throwable != null) {
-            Toast.makeText(this,"Failed to start camera.",Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onCameraSizeSelected(int cameraWidth, int cameraHeight, ROTATE rotation) {
-        if (rotation == ROTATE.BY_90_CCW || rotation == ROTATE.BY_90_CW) {
-            cameraPreviewWidth = cameraHeight;
-            cameraPreviewHeight = cameraWidth;
-        } else {
-            cameraPreviewWidth = cameraWidth;
-            cameraPreviewHeight = cameraHeight;
-        }
-        drawingView.setThickness((int)(cameraWidth/100f));
-
-        mainLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                int layoutWidth = mainLayout.getWidth();
-                int layoutHeight = mainLayout.getHeight();
-
-                if (cameraPreviewWidth == 0 || cameraPreviewHeight == 0 || layoutWidth == 0 || layoutHeight == 0)
-                    return;
-
-                float layoutAspectRatio = (float)layoutWidth/layoutHeight;
-                float cameraPreviewAspectRatio = (float)cameraPreviewWidth/cameraPreviewHeight;
-
-                int newWidth;
-                int newHeight;
-
-                if (cameraPreviewAspectRatio > layoutAspectRatio) {
-                    newWidth = layoutWidth;
-                    newHeight =(int) (layoutWidth / cameraPreviewAspectRatio);
-                } else {
-                    newWidth = (int) (layoutHeight * cameraPreviewAspectRatio);
-                    newHeight = layoutHeight;
-                }
-
-                drawingView.updateViewDimensions(newWidth,newHeight,cameraPreviewWidth,cameraPreviewHeight);
-
-                ViewGroup.LayoutParams params = mainLayout.getLayoutParams();
-                params.height = newHeight;
-                params.width = newWidth;
-                mainLayout.setLayoutParams(params);
-
-                //Now that our main layout has been resized, we can remove the progress bar that was obscuring the screen (its purpose was to obscure the resizing of the SurfaceView)
-                progressBarLayout.setVisibility(View.GONE);
-            }
-        });
-
-    }
-
-
-    public void camera_button_click(View view) {
-        if (cameraType == CameraDetector.CameraType.CAMERA_FRONT) {
-            if (isBackFacingCameraDetected) {
-                cameraType = CameraDetector.CameraType.CAMERA_BACK;
-            } else {
-                Toast.makeText(this,"No back-facing camera found",Toast.LENGTH_LONG).show();
-            }
-        } else if (cameraType == CameraDetector.CameraType.CAMERA_BACK) {
-            if (isFrontFacingCameraDetected) {
-                cameraType = CameraDetector.CameraType.CAMERA_FRONT;
-            } else {
-                Toast.makeText(this,"No front-facing camera found",Toast.LENGTH_LONG).show();
-            }
-        }
-
-        performFaceDetectionStoppedTasks();
-
-        try {
-            detector.setCameraType(cameraType);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-        }
     }
 }
 
