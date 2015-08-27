@@ -29,7 +29,20 @@ public class GradientMetricView extends MetricView {
     @Override
     public void setScore(float s) {
         text = String.format("%d%%", (int)s);
-
+        if (s > 0) {
+            left = midX - (halfWidth * (s / 100));
+            right = midX + (halfWidth * (s / 100));
+        } else {
+            left = midX - (halfWidth * (-s / 100));
+            right = midX + (halfWidth * (-s / 100));
+        }
+        if (s > 0) {
+            float colorScore = ((100f-s)/100f)*255;
+            boxPaint.setColor(Color.rgb((int)colorScore,255,(int)colorScore));
+        } else {
+            float colorScore = ((100f+s)/100f)*255;
+            boxPaint.setColor(Color.rgb(255,(int)colorScore,(int)colorScore));
+        }
         invalidate(); //instruct Android to re-draw our view, now that the text has changed
     }
 }

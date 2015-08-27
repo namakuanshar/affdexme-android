@@ -15,8 +15,6 @@ import java.lang.Math;
  */
 public class MetricView extends View {
 
-    int metricToDisplay = -1;
-
     float midX = 0; //coordinates of the center of the view
     float midY = 0;
     float halfWidth = 50;//default width and height of view
@@ -28,7 +26,6 @@ public class MetricView extends View {
     float right = 0;
     float top = 0;
     float textBottom = 0; //tells our view where to draw the baseline of the font
-    boolean isShadedMetricView = false;
 
     public MetricView(Context context) {
         super(context);
@@ -41,13 +38,6 @@ public class MetricView extends View {
     public MetricView(Context context, AttributeSet attrs, int styleID){
         super(context, attrs, styleID);
         initResources(context,attrs);
-    }
-
-    void setIsShadedMetricView(boolean b) {
-        this.isShadedMetricView = b;
-        if (!b) {
-            boxPaint.setColor(Color.GREEN);
-        }
     }
 
     void initResources(Context context, AttributeSet attrs) {
@@ -84,41 +74,14 @@ public class MetricView extends View {
 
     }
 
-    public void setMetricToDisplay(int metricToDisplay) {
-        this.metricToDisplay = metricToDisplay;
-    }
-
-    public int getMetricToDisplay() {
-        return this.metricToDisplay;
-    }
-
     public void setTypeface(Typeface face) {
         textPaint.setTypeface(face);
     }
 
     public void setScore(float s){
         text = String.format("%.0f%%", s);  //change the text of the view
-
-        if (isShadedMetricView) {
-            if (s > 0) {
-                left = midX - (halfWidth * (s / 100));
-                right = midX + (halfWidth * (s / 100));
-            } else {
-                left = midX - (halfWidth * (-s / 100));
-                right = midX + (halfWidth * (-s / 100));
-            }
-            if (s > 0) {
-                float colorScore = ((100f-s)/100f)*255;
-                boxPaint.setColor(Color.rgb((int)colorScore,255,(int)colorScore));
-            } else {
-                float colorScore = ((100f+s)/100f)*255;
-                boxPaint.setColor(Color.rgb(255,(int)colorScore,(int)colorScore));
-            }
-        } else {
-            left = midX - (halfWidth * (s / 100)); //change the coordinates at which the colored bar will be drawn
-            right = midX + (halfWidth * (s / 100));
-        }
-
+        left = midX - (halfWidth * (s / 100)); //change the coordinates at which the colored bar will be drawn
+        right = midX + (halfWidth * (s / 100));
         invalidate(); //instruct Android to re-draw our view, now that the text has changed
     }
 

@@ -5,23 +5,6 @@
     <dimen name="metric_view_bar_length">130dp</dimen>
     <dimen name="bottom_padding">10dp</dimen>
     <dimen name="metric_viewgroup">190dp</dimen>
-    <dimen name="logo_width">180dp</dimen>
+    <dimen name="image_width">180dp</dimen>
     <dimen name="metric_panel_padding">15dp</dimen>
-
-    <dimen name="settings_button_width">64dp</dimen>
-    <dimen name="settings_button_height">64dp</dimen>
-    <dimen name="settings_button_margin">12dp</dimen>
-
-    <dimen name="grid_item_chooser_text_size">19sp</dimen>
-
-    <dimen name="measurements_text_size">21sp</dimen>
-    <dimen name="measurements_upper_text_spacing">70dp</dimen>
-    <dimen name="measurements_lower_text_spacing">100dp</dimen>
-    <integer name="drawing_view_text_border_thickness">5</integer>
-
-    <dimen name="metric_chooser_column_width">160dp</dimen>
-
-    <dimen name="grid_item_checkbox_size">50dp</dimen>
-
-
 </resources>
