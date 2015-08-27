@@ -592,13 +592,12 @@ public class MainActivity extends Activity
         startActivity(new Intent(this,SettingsActivity.class));
     }
 
-    /*
     @Override
     public void onCameraStarted(boolean b, Throwable throwable) {
         if (throwable != null) {
             Toast.makeText(this,"Failed to start camera.",Toast.LENGTH_LONG).show();
         }
-    }*/
+    }
 
     @Override
     public void onCameraSizeSelected(int cameraWidth, int cameraHeight, ROTATE rotation) {
