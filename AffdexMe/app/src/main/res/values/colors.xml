@@ -5,9 +5,4 @@
     <color name="affectiva_orange">#ff8000</color>
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
-    <color name="red">#cf1a0b</color>
-
-    <color name="grid_item_not_chosen">#646464</color>
-    <color name="grid_item_chosen">#009600</color>
-    <color name="grid_item_chosen_over_limit">#cf1a0b</color>
 </resources>

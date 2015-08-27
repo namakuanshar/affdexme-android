@@ -8,26 +8,21 @@
     <dimen name="logo_width">100dp</dimen>
     <dimen name="metric_panel_padding">8dp</dimen>
 
-    <dimen name="please_wait_textview_size">17sp</dimen>
-
-    <dimen name="settings_button_size">36dp</dimen>
+    <dimen name="settings_button_width">36dp</dimen>
+    <dimen name="settings_button_height">36dp</dimen>
     <dimen name="settings_button_margin">7dp</dimen>
 
     <dimen name="grid_item_chooser_text_size">12sp</dimen>
-    <dimen name="grid_item_checkbox_size">50dp</dimen>
 
     <dimen name="measurements_text_size">13sp</dimen>
     <dimen name="measurements_upper_text_spacing">50dp</dimen>
     <dimen name="measurements_lower_text_spacing">70dp</dimen>
-    <integer name="measurements_text_border_thickness">3</integer>
+    <integer name="drawing_view_text_border_thickness">3</integer>
 
-    <dimen name="header_text_size">17dp</dimen>
+    <dimen name="metric_chooser_column_width">90dp</dimen>
 
-    <dimen name="metric_chooser_text_size">13dp</dimen>
+    <dimen name="grid_item_checkbox_size">25dp</dimen>
 
-    <dimen name="grid_item_left_padding">3dp</dimen>
-    <dimen name="grid_item_bottom_padding">6dp</dimen>
 
-    <dimen name="grid_item_metric_name">11sp</dimen>
-    <dimen name="metric_chooser_column_width">120dp</dimen>
+
 </resources>

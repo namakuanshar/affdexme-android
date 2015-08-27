@@ -1,139 +1,91 @@
 package com.affectiva.affdexme;
 
-import java.lang.StringBuilder;
+import java.util.HashMap;
 
 /**
- * A class containing:
- *  -enumerations representing the Emotion and Expressions featured in the Affectiva SDK.
- *  -a Metric interface to allow easy iteration through all Expressions and Emotions
- *  -utility methods for converting a Metric into several types of strings
+ * Created by Alan on 7/14/2015.
  */
 public class MetricsManager {
+    //Emotions
+    static final int ANGER = 0;
+    static final int CONTEMPT = 1;
+    static final int DISGUST = 2;
+    static final int ENGAGEMENT = 3;
+    static final int FEAR = 4;
+    static final int JOY = 5;
+    static final int SADNESS = 6;
+    static final int SURPRISE = 7;
+    static final int VALENCE = 8;
 
-    private static Metrics[] allMetrics;
+    static final int EXPRESSIONS_START_INDEX = 9;
+
+    //Expressions
+    static final int ATTENTION = 9;
+    static final int BROW_FURROW = 10;
+    static final int BROW_RAISE = 11;
+    static final int CHIN_RAISER = 12;
+    static final int EYE_CLOSURE = 13;
+    static final int INNER_BROW_RAISER = 14;
+    static final int LIP_DEPRESSOR = 15;
+    static final int LIP_PRESS = 16;
+    static final int LIP_PUCKER = 17;
+    static final int LIP_SUCK = 18;
+    static final int MOUTH_OPEN = 19;
+    static final int NOSE_WRINKLER = 20;
+    static final int SMILE = 21;
+    static final int SMIRK = 22;
+    static final int UPPER_LIP_RAISER = 23;
+
+
+
+    private static HashMap<Integer,String> metricNames;
 
     static {
-        Emotions[] emotions = Emotions.values();
-        Expressions[] expressions = Expressions.values();
-        allMetrics = new Metrics[emotions.length + expressions.length];
-        System.arraycopy(emotions,0,allMetrics,0,emotions.length);
-        System.arraycopy(expressions,0,allMetrics,emotions.length,expressions.length);
-    }
+        metricNames = new HashMap<Integer,String>();
 
-    static Metrics[] getAllMetrics() {
-        return allMetrics;
-    }
+        metricNames.put(ANGER,"anger");
+        metricNames.put(CONTEMPT,"contempt");
+        metricNames.put(DISGUST,"disgust");
+        metricNames.put(ENGAGEMENT,"engagement");
+        metricNames.put(FEAR,"fear");
+        metricNames.put(JOY,"joy");
+        metricNames.put(SADNESS,"sadness");
+        metricNames.put(SURPRISE,"surprise");
+        metricNames.put(VALENCE,"valence");
 
-    enum MetricType {Emotion, Expression};
-
-    interface Metrics {
-        MetricType getType();
-    }
-
-    enum Emotions implements Metrics {
-        ANGER,
-        DISGUST,
-        FEAR,
-        JOY,
-        SADNESS,
-        SURPRISE,
-        CONTEMPT,
-        ENGAGEMENT,
-        VALENCE;
-
-        @Override
-        public MetricType getType() {
-            return MetricType.Emotion;
-        }
+        metricNames.put(ATTENTION,"attention");
+        metricNames.put(BROW_FURROW,"brow_furrow");
+        metricNames.put(BROW_RAISE,"brow_raise");
+        metricNames.put(CHIN_RAISER,"chin_raise");
+        metricNames.put(EYE_CLOSURE,"eye_closure");
+        metricNames.put(INNER_BROW_RAISER,"inner_brow_raise");
+        metricNames.put(LIP_DEPRESSOR,"lip_depressor");
+        metricNames.put(LIP_PRESS,"lip_press");
+        metricNames.put(LIP_PUCKER,"lip_pucker");
+        metricNames.put(LIP_SUCK,"lip_suck");
+        metricNames.put(MOUTH_OPEN,"mouth_open");
+        metricNames.put(NOSE_WRINKLER,"nose_wrinkler");
+        metricNames.put(SMILE,"smile");
+        metricNames.put(SMIRK,"smirk");
+        metricNames.put(UPPER_LIP_RAISER,"upper_lip_raise");
 
     }
 
-    enum Expressions implements Metrics {
-        ATTENTION,
-        BROW_FURROW,
-        BROW_RAISE,
-        CHIN_RAISE,
-        EYE_CLOSURE,
-        INNER_BROW_RAISE,
-        LIP_CORNER_DEPRESSOR,
-        LIP_PRESS,
-        LIP_PUCKER,
-        LIP_SUCK,
-        MOUTH_OPEN,
-        NOSE_WRINKLE,
-        SMILE,
-        SMIRK,
-        UPPER_LIP_RAISE;
-
-        @Override
-        public MetricType getType() {
-            return MetricType.Expression;
-        }
-
-    }
-
-    //Used for displays
-    static String getUpperCaseName(Metrics metric) {
-        if (metric == Expressions.LIP_CORNER_DEPRESSOR) {
-            return "FROWN";
+    static String getMetricName(int index){
+        String toReturn = metricNames.get(index);
+        if (toReturn != null) {
+            return toReturn;
         } else {
-            return metric.toString().replace("_", " ");
+            return "";
         }
     }
 
-    //Used for MetricSelectionFragment
-    //This method is optimized for strings of the form SOME_METRIC_NAME, which all metric names currently are
-    static String getCapitalizedName(Metrics metric) {
-        if (metric == Expressions.LIP_CORNER_DEPRESSOR) {
-            return "Frown";
-        }
-        String original = metric.toString();
-        StringBuilder builder = new StringBuilder();
-        boolean canBeLowerCase = false;
-        for (int n = 0; n < original.length(); n++) {
-            char c = original.charAt(n);
-            if (c == '_') {
-                builder.append(' ');
-                canBeLowerCase = false;
-            } else {
-                if (canBeLowerCase) {
-                    builder.append(Character.toLowerCase(c));
-                } else {
-                    builder.append(c);
-                    canBeLowerCase = true;
-                }
-            }
-        }
-        return builder.toString();
+    static int getTotalNumEmotions() {
+        return EXPRESSIONS_START_INDEX;
     }
 
-    //Used to load resource files
-    static String getLowerCaseName(Metrics metric) {
-        return metric.toString().toLowerCase();
-    }
-
-    //Used to construct method names for reflection
-    static String getCamelCase(Metrics metric) {
-        String metricString = metric.toString();
-        
-        StringBuilder builder = new StringBuilder();
-        builder.append(Character.toUpperCase(metricString.charAt(0)));
-
-        if (metricString.length() > 1) {
-            for (int n = 1; n < metricString.length(); n++ ){
-                char c = metricString.charAt(n);
-                if (c == '_') {
-                    n += 1;
-                    if (n < metricString.length()) {
-                        builder.append(metricString.charAt(n));
-                    }
-                } else {
-                    builder.append(Character.toLowerCase(metricString.charAt(n)));
-                }
-            }
-        }
-
-        return builder.toString();
+    static  int getTotalNumExpressions() {
+        return metricNames.size() - EXPRESSIONS_START_INDEX;
     }
 
 

@@ -8,8 +8,8 @@ android {
         applicationId "com.affectiva.affdexme"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 18
-        versionName "2.0.18b"
+        versionCode 14
+        versionName "1.0.14b"
     }
     buildTypes {
         release {
@@ -20,9 +20,20 @@ android {
 }
 
 dependencies {
+	//gson is necessary for the license to be parsed
+    compile 'com.google.code.gson:gson:2.3'
+
+	
 	//include the Affdex SDK jars
-    compile files('libs/Affdex-sdk.jar')
-    compile files('libs/Affdex-sdk-javadoc.jar')
+    compile files('libs/Affdex-sdk-1.2-SNAPSHOT.jar')
+    compile files('libs/Affdex-sdk-1.2-SNAPSHOT-javadoc.jar')
     compile files('libs/dagger-1.2.2.jar')
+    compile files('libs/flurry-analytics-4.1.0.jar')
     compile files('libs/javax.inject-1.jar')
+	
+	//although the use of the CameraDetector class in this project does not require it, you may have to include
+	//the following dependencies if you use other features of the Affdex SDK
+	//compile 'com.android.support:support-v4:22.2.0'
+    //compile 'com.google.android.gms:play-services:7.5.0'
+	
 }
