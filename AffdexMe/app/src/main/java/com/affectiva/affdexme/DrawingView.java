@@ -25,13 +25,17 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
+    class PointFArraySharer {
+        PointF[] nextPointsToDraw = null;
+    }
+
     //Inner Thread class
     class DrawingThread extends Thread{
         private SurfaceHolder mSurfaceHolder;
         private Paint circlePaint;
         private Paint boxPaint;
-        private boolean stopFlag = false; //boolean to indicate when thread has been told to stop
-        private PointF[] nextPointsToDraw = null; //holds a reference to the most recent set of points returned by CameraDetector, passed in by main thread
+        private volatile boolean stopFlag = false; //boolean to indicate when thread has been told to stop
+        private final PointFArraySharer sharer;
         private DrawingViewConfig config;
         private final long drawPeriod = 33; //draw at 30 fps
 
@@ -52,6 +56,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             boxPaint.setStyle(Paint.Style.STROKE);
 
             config = con;
+            sharer = new PointFArraySharer();
 
             setThickness(config.drawThickness);
         }
@@ -84,7 +89,9 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         //Updates thread with latest points returned by the onImageResults() event.
         public void updatePoints(PointF[] pointList) {
-            nextPointsToDraw = pointList;
+            synchronized (sharer) {
+                sharer.nextPointsToDraw = pointList;
+            }
         }
 
         void setThickness(int thickness) {
@@ -93,7 +100,9 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         //Inform thread face detection has stopped, so array of points is no longer valid.
         public void invalidatePoints() {
-            nextPointsToDraw = null;
+            synchronized (sharer) {
+                sharer.nextPointsToDraw = null;
+            }
         }
 
         @Override
@@ -101,7 +110,6 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             while(!stopFlag) {
-                long startTime = SystemClock.elapsedRealtime(); //get time at the start of thread loop
 
                 /**
                  * We use SurfaceHolder.lockCanvas() to get the canvas that draws to the SurfaceView.
@@ -114,9 +122,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                     if (c!= null) {
                         synchronized (mSurfaceHolder) {
                             c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //clear previous dots
-                            if ((nextPointsToDraw != null) ) {
-                                draw(c);
-                            }
+                            draw(c);
                         }
                     }
                 }
@@ -126,23 +132,18 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
 
-                //send thread to sleep so we don't draw faster than the requested 'drawPeriod'.
-                long sleepTime = drawPeriod - (SystemClock.elapsedRealtime() - startTime);
-                try {
-                    if(sleepTime>0){
-                        this.sleep(sleepTime);
-                    }
-                } catch (InterruptedException ex) {
-                    Log.e(LOG_TAG,ex.getMessage());
-                }
             }
 
             config = null; //nullify object to avoid memory leak
         }
 
         void draw(Canvas c) {
-            //Save our own reference to the list of points, in case the previous reference is overwritten by the main thread.
-            PointF[] points = nextPointsToDraw;
+            PointF[] points;
+            synchronized (sharer) {
+                if (sharer.nextPointsToDraw == null)
+                    return;
+                points = sharer.nextPointsToDraw;
+            }
 
             //Coordinates around which to draw bounding box.
             float leftBx = config.surfaceViewWidth;
@@ -218,10 +219,9 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         private int surfaceViewHeight = 0;
         private float screenToImageRatio = 0;
         private int drawThickness = 0;
-        private boolean isImageDimensionsNeeded = true;
-        private boolean isSurfaceViewDimensionsNeeded = true;
         private boolean isDrawPointsEnabled = true; //by default, have the drawing thread draw tracking dots
         private boolean isDrawMeasurementsEnabled = false;
+        private boolean isDimensionsNeeded = true;
 
         private Paint textPaint;
         private int textSize;
@@ -235,32 +235,16 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             this.upperTextSpacing = upperTextSpacing;
         }
 
-        public void updateImageDimensions(int w, int h) {
-
-            if ( (w <= 0) || (h <= 0)) {
-                throw new IllegalArgumentException("Image Dimensions must be positive.");
+        public void updateViewDimensions(int surfaceViewWidth, int surfaceViewHeight, int imageWidth, int imageHeight) {
+            if (surfaceViewWidth <= 0 || surfaceViewHeight <= 0 || imageWidth <= 0 || imageHeight <= 0) {
+                throw new IllegalArgumentException("All dimensions submitted to updateViewDimensions() must be positive");
             }
-
-            imageWidth = w;
-            imageHeight = h;
-            if (!isSurfaceViewDimensionsNeeded) {
-                screenToImageRatio = (float)surfaceViewWidth / (float)imageWidth;
-            }
-            isImageDimensionsNeeded = false;
-        }
-
-        public void updateSurfaceViewDimensions(int w, int h) {
-
-            if ( (w <= 0) || (h <= 0)) {
-                throw new IllegalArgumentException("SurfaceView Dimensions must be positive.");
-            }
-
-            surfaceViewWidth = w;
-            surfaceViewHeight = h;
-            if (!isImageDimensionsNeeded) {
-                screenToImageRatio = (float)surfaceViewWidth / (float)imageWidth;
-            }
-            isSurfaceViewDimensionsNeeded = false;
+            this.imageWidth = imageWidth;
+            this.imageHeight = imageHeight;
+            this.surfaceViewWidth = surfaceViewWidth;
+            this.surfaceViewHeight = surfaceViewHeight;
+            screenToImageRatio = (float)surfaceViewWidth / imageWidth;
+            isDimensionsNeeded = false;
         }
 
         public void setDrawThickness(int t) {
@@ -365,29 +349,17 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    public boolean isImageDimensionsNeeded() {
-        return drawingViewConfig.isImageDimensionsNeeded;
+    public boolean isDimensionsNeeded() {
+        return drawingViewConfig.isDimensionsNeeded;
     }
 
-    public boolean isSurfaceDimensionsNeeded() {
-        return drawingViewConfig.isSurfaceViewDimensionsNeeded;
+    public void invalidateDimensions() {
+        drawingViewConfig.isDimensionsNeeded = true;
     }
 
-    public void invalidateImageDimensions() {
-        drawingViewConfig.isImageDimensionsNeeded = true;
-    }
-
-    public void updateImageDimensions(int w, int h) {
+    public void updateViewDimensions(int surfaceViewWidth, int surfaceViewHeight, int imageWidth, int imageHeight) {
         try {
-            drawingViewConfig.updateImageDimensions(w, h);
-        } catch (Exception e) {
-            Log.e(LOG_TAG,e.getMessage());
-        }
-    }
-
-    public void updateSurfaceViewDimensions(int w, int h) {
-        try {
-            drawingViewConfig.updateSurfaceViewDimensions(w, h);
+            drawingViewConfig.updateViewDimensions(surfaceViewWidth,surfaceViewHeight,imageWidth,imageHeight);
         } catch (Exception e) {
             Log.e(LOG_TAG,e.getMessage());
         }
