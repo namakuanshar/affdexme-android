@@ -74,8 +74,6 @@ public class MainActivity extends Activity
 
     //Affectiva SDK Object
     private CameraDetector detector = null;
-    //TODO: License file in byte form. Should NOT be included in released sample code.
-    private byte[] licenseBytes = {123,34,116,111,107,101,110,34,58,32,34,102,98,51,51,101,102,57,98,102,98,49,57,53,100,97,99,55,97,53,99,48,98,50,56,54,54,51,51,48,56,52,100,102,56,48,57,55,52,101,99,99,57,98,51,54,97,97,101,51,57,99,97,51,98,97,53,54,57,50,49,102,56,49,53,34,44,34,108,105,99,101,110,115,111,114,34,58,32,34,65,102,102,101,99,116,105,118,97,32,73,110,99,46,34,44,34,101,120,112,105,114,101,115,34,58,32,34,50,48,57,57,45,48,49,45,48,49,34,44,34,100,101,118,101,108,111,112,101,114,73,100,34,58,32,34,65,102,102,101,99,116,105,118,97,45,105,110,116,101,114,110,97,108,34,44,34,115,111,102,116,119,97,114,101,34,58,32,34,65,102,102,100,101,120,32,83,68,75,34,125};
 
     //MetricsManager View UI Objects
     private RelativeLayout metricViewLayout;
@@ -244,8 +242,6 @@ public class MainActivity extends Activity
          * that view will be painted with what the camera sees.
          */
         detector = new CameraDetector(this, cameraType, cameraView);
-        //TODO: this method SHOULD NOT be included in sample code release (customer should enter their own license file).
-        detector.setLicenseStream(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(licenseBytes))));
         // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
         //detector.setLicensePath("YourLicenseFile");
         detector.setImageListener(this);
@@ -581,12 +577,13 @@ public class MainActivity extends Activity
         startActivity(new Intent(this, SettingsActivity.class));
     }
 
+    /* onCameraStarted event not available until SDK 2.02
     @Override
     public void onCameraStarted(boolean b, Throwable throwable) {
         if (throwable != null) {
             Toast.makeText(this,"Failed to start camera.",Toast.LENGTH_LONG).show();
         }
-    }
+    }*/
 
     @Override
     public void onCameraSizeSelected(int cameraWidth, int cameraHeight, ROTATE rotation) {
