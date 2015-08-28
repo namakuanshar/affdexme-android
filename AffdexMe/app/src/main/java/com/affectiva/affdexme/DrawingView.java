@@ -26,6 +26,7 @@ import com.affectiva.android.affdex.sdk.detector.Face;
 public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
     class PointFArraySharer {
+        boolean isPointsMirrored = false;
         PointF[] nextPointsToDraw = null;
     }
 
@@ -88,9 +89,10 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         //Updates thread with latest points returned by the onImageResults() event.
-        public void updatePoints(PointF[] pointList) {
+        public void updatePoints(PointF[] pointList, boolean isPointsMirrored) {
             synchronized (sharer) {
                 sharer.nextPointsToDraw = pointList;
+                sharer.isPointsMirrored = isPointsMirrored;
             }
         }
 
@@ -139,10 +141,12 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         void draw(Canvas c) {
             PointF[] points;
+            boolean mirrorPoints;
             synchronized (sharer) {
                 if (sharer.nextPointsToDraw == null)
                     return;
                 points = sharer.nextPointsToDraw;
+                mirrorPoints = sharer.isPointsMirrored;
             }
 
             //Coordinates around which to draw bounding box.
@@ -155,7 +159,12 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
                 //transform from the camera coordinates to our screen coordinates
                 //The camera preview is displayed as a mirror, so X pts have to be mirrored back.
-                float x = (config.imageWidth - points[i].x - 1) * config.screenToImageRatio;
+                float x;
+                if (mirrorPoints) {
+                    x = (config.imageWidth - points[i].x) * config.screenToImageRatio;
+                } else {
+                    x = (points[i].x) * config.screenToImageRatio;
+                }
                 float y = (points[i].y)* config.screenToImageRatio;
 
                 //We determine the left-most, top-most, right-most, and bottom-most points to draw the bounding box around.
@@ -394,8 +403,8 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         drawingThread.setMetrics(roll,yaw,pitch,interOcDis,valence);
     }
 
-    public void updatePoints(PointF[] points) {
-        drawingThread.updatePoints(points);
+    public void updatePoints(PointF[] points, boolean isPointsMirrored) {
+        drawingThread.updatePoints(points, isPointsMirrored);
     }
 
     public void invalidatePoints(){

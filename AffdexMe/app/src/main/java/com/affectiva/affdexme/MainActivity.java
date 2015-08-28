@@ -67,7 +67,7 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 
 public class MainActivity extends Activity
-        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.OnCameraEventListener {
+        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.CameraEventListener {
 
     private static final String LOG_TAG = "Affectiva";
     public static final int NUM_METRICS_DISPLAYED = 6;
@@ -114,6 +114,7 @@ public class MainActivity extends Activity
     int cameraPreviewWidth = 0;
     int cameraPreviewHeight = 0;
     CameraDetector.CameraType cameraType;
+    boolean mirrorPoints = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,10 +147,14 @@ public class MainActivity extends Activity
         }
 
         //TODO: change this to be taken from settings
-        if (isBackFacingCameraDetected)
+        if (isBackFacingCameraDetected) {
             cameraType = CameraDetector.CameraType.CAMERA_BACK;
-        if (isFrontFacingCameraDetected)
+            mirrorPoints = false;
+        }
+        if (isFrontFacingCameraDetected) {
             cameraType = CameraDetector.CameraType.CAMERA_FRONT;
+            mirrorPoints = true;
+        }
     }
 
     void initializeUI() {
@@ -257,6 +262,7 @@ public class MainActivity extends Activity
         restoreApplicationSettings();
         setMenuVisible(true);
         isMenuShowingForFirstTime = true;
+        mainWindowResumedTasks();
     }
 
     /*
@@ -335,23 +341,6 @@ public class MainActivity extends Activity
         numberOfFrames = 0;
     }
 
-    /**
-     * We want to start the camera as late as possible, so it does not freeze the application before it has been visually resumed.
-     * We thus post a runnable that will take care of starting the camera.
-     * We also reset variables used to calculate the Processed Frames Per Second.
-     */
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        if (hasFocus && isFrontFacingCameraDetected) {
-            cameraView.post(new Runnable() {
-                @Override
-                public void run() {
-                    mainWindowResumedTasks();
-                }
-            });
-        }
-    }
-
     void mainWindowResumedTasks() {
 
         startDetector();
@@ -360,6 +349,7 @@ public class MainActivity extends Activity
             progressBarLayout.setVisibility(View.GONE);
         }
         resetFPSCalculations();
+
         cameraView.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -402,7 +392,6 @@ public class MainActivity extends Activity
     void performFaceDetectionStoppedTasks() {
         leftMetricsLayout.animate().alpha(0); //make left and right metrics disappear
         rightMetricsLayout.animate().alpha(0);
-        drawingView.updatePoints(null);
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
 
@@ -421,7 +410,7 @@ public class MainActivity extends Activity
 
         //If faces.size() is 0, we received a frame in which no face was detected
         if (faces.size() == 0) {
-            drawingView.updatePoints(null); //the drawingView takes null points to mean it doesn't have to draw anything
+            drawingView.updatePoints(null, mirrorPoints); //the drawingView takes null points to mean it doesn't have to draw anything
             return;
         }
 
@@ -441,7 +430,7 @@ public class MainActivity extends Activity
         */
         if (drawingView.getDrawPointsEnabled() || drawingView.getDrawMeasurementsEnabled()) {
             drawingView.setMetrics(face.measurements.orientation.getRoll(), face.measurements.orientation.getYaw(), face.measurements.orientation.getPitch(), face.measurements.getInterocularDistance(), face.emotions.getValence());
-            drawingView.updatePoints(face.getFacePoints());
+            drawingView.updatePoints(face.getFacePoints(),mirrorPoints);
         }
     }
 
@@ -589,16 +578,15 @@ public class MainActivity extends Activity
     }
 
     public void settings_button_click(View view) {
-        startActivity(new Intent(this,SettingsActivity.class));
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 
-    /*
     @Override
     public void onCameraStarted(boolean b, Throwable throwable) {
         if (throwable != null) {
             Toast.makeText(this,"Failed to start camera.",Toast.LENGTH_LONG).show();
         }
-    }*/
+    }
 
     @Override
     public void onCameraSizeSelected(int cameraWidth, int cameraHeight, ROTATE rotation) {
@@ -653,12 +641,14 @@ public class MainActivity extends Activity
         if (cameraType == CameraDetector.CameraType.CAMERA_FRONT) {
             if (isBackFacingCameraDetected) {
                 cameraType = CameraDetector.CameraType.CAMERA_BACK;
+                mirrorPoints = false;
             } else {
                 Toast.makeText(this,"No back-facing camera found",Toast.LENGTH_LONG).show();
             }
         } else if (cameraType == CameraDetector.CameraType.CAMERA_BACK) {
             if (isFrontFacingCameraDetected) {
                 cameraType = CameraDetector.CameraType.CAMERA_FRONT;
+                mirrorPoints = true;
             } else {
                 Toast.makeText(this,"No front-facing camera found",Toast.LENGTH_LONG).show();
             }
