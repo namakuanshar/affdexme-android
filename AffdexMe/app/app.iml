@@ -88,9 +88,11 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform (1)" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="Affdex-sdk-1.2-SNAPSHOT-javadoc" level="project" />
     <orderEntry type="library" exported="" name="dagger-1.2.2" level="project" />
-    <orderEntry type="library" exported="" name="Affdex-sdk" level="project" />
     <orderEntry type="library" exported="" name="javax.inject-1" level="project" />
-    <orderEntry type="library" exported="" name="Affdex-sdk-javadoc" level="project" />
+    <orderEntry type="library" exported="" name="Affdex-sdk-1.2-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="gson-2.3" level="project" />
+    <orderEntry type="library" exported="" name="flurry-analytics-4.1.0" level="project" />
   </component>
 </module>

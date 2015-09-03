@@ -12,8 +12,6 @@
 #prevent proguard from warning us about not including the GooglePlay dependency
 -dontwarn **
 
--keepattributes Exceptions,InnerClasses,Signature,Deprecated, SourceFile,LineNumberTable,*Annotation*,EnclosingMethod
-
 #keep all classes (otherwise Proguard may remove classes that use reflection, injection, Gson, etc...)
 -keep class sun.**
 -keepclassmembers class sun.** {*;}
@@ -27,20 +25,19 @@
 
 #keep certain class members (otherwise Proguard would strip the members of these classes)
 -keep class com.**
--keepclassmembers class !com.affectiva.affdexme.MainActivity,!com.affectiva.android.affdex.sdk.detector.Detector {*;}
--keepclassmembers class com.affectiva.android.affdex.sdk.detector.Detector {
-    public void setDetect**;
-}
+-keepclassmembers class com.affectiva.android.affdex.sdk.detector.A* { *; }
+-keepclassmembers class com.affectiva.android.affdex.sdk.detector.B* { *; }
+-keepclassmembers class com.affectiva.android.affdex.sdk.detector.I* { *; }
+-keepclassmembers class com.affectiva.android.affdex.sdk.detector.L* { *; }
+-keepclassmembers class com.affectiva.android.affdex.sdk.Frame { *; }
 
-# Dagger
--dontwarn dagger.internal.codegen.**
--keepclassmembers,allowobfuscation class * {
-	@javax.inject.* *;
-	@dagger.* *;
-	<init>();
+
+-keepclassmembers class com.affectiva.affdexme.DrawingView {*;}
+-keepclassmembers class com.affectiva.affdexme.MetricView {*;}
+-keepclassmembers class com.affectiva.affdexme.GradientMetricView {*;}
+
+-keepclassmembers class * {
+    @javax.inject.* *;
+    @dagger.* *;
+    <init>();
 }
--keep class dagger.* { *; }
--keep class javax.inject.* { *; }
--keep class * extends dagger.internal.Binding
--keep class * extends dagger.internal.ModuleAdapter
--keep class * extends dagger.internal.StaticInjection

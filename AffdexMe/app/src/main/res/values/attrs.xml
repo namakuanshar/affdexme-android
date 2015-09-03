@@ -6,12 +6,4 @@
         <attr name="barLength" format="dimension"/>
         <attr name="textDepth" format="dimension"/>
     </declare-styleable>
-    <declare-styleable name="drawing_view_attributes">
-        <attr name="measurements_text_size" format="dimension" />
-        <attr name="measurements_upper_spacing" format="dimension"/>
-        <attr name="measurements_lower_spacing" format="dimension"/>
-        <attr name="measurements_color" format="color"/>
-        <attr name="measurements_text_border_color" format="color"/>
-        <attr name="measurements_text_border_thickness" format="float"/>
-    </declare-styleable>
 </resources>

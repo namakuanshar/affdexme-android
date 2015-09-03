@@ -1,13 +1,12 @@
 package com.affectiva.affdexme;
 
 import android.app.Activity;
-import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -15,17 +14,18 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageButton;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import com.affectiva.android.affdex.sdk.Frame;
@@ -67,24 +67,37 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  */
 
 public class MainActivity extends Activity
-        implements Detector.FaceListener, Detector.ImageListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
+        implements Detector.FaceListener, Detector.ImageListener, TextView.OnEditorActionListener, View.OnTouchListener, CameraDetector.CameraSurfaceViewListener {
 
     private static final String LOG_TAG = "Affectiva";
-    public static final int NUM_METRICS_DISPLAYED = 6;
-
     //Affectiva SDK Object
     private CameraDetector detector = null;
 
-    //MetricsManager View UI Objects
+    //Metrics View UI Objects
     private RelativeLayout metricViewLayout;
     private LinearLayout leftMetricsLayout;
     private LinearLayout rightMetricsLayout;
-    private MetricDisplay[] metricDisplays;
-    private TextView[] metricNames;
+    private MetricView smilePct;
+    private MetricView browRaisePct;
+    private MetricView browFurrowPct;
+    private MetricView frownPct;
+    private MetricView valencePct;
+    private MetricView engagementPct;
     private TextView fpsName;
     private TextView fpsPct;
-    private TextView pleaseWaitTextView;
-    private ProgressBar progressBar;
+    private TextView smileName;
+    private TextView browRaiseName;
+    private TextView browFurrowName;
+    private TextView frownName;
+    private TextView valenceName;
+    private TextView engagementName;
+
+    //Menu UI Objects
+    private RelativeLayout menuLayout;
+    private EditText fpsEditText;
+    private CheckBox fpsCheckbox;
+    private CheckBox trackingCheckbox;
+    private TextView fpsEditTextName;
 
     //Other UI objects
     private ViewGroup activityLayout; //top-most ViewGroup in which all content resides
@@ -92,13 +105,15 @@ public class MainActivity extends Activity
     private RelativeLayout progressBarLayout; //layout used to show progress circle while camera is starting
     private SurfaceView cameraView; //SurfaceView used to display camera images
     private DrawingView drawingView; //SurfaceView containing its own thread, used to draw facial tracking dots
-    private ImageButton settingsButton;
+
+    //The Shared Preferences object is used to restore/save settings when activity is created/destroyed
+    private final String PREFS_NAME = "AffdexMe";
+    SharedPreferences sharedPreferences;
 
     //Application settings variables
-    private int detectorProcessRate;
+    private int detectorProcessRate = 20;
     private boolean isMenuVisible = false;
     private boolean isFPSVisible = false;
-    private boolean isMenuShowingForFirstTime = true;
 
     //Frames Per Second (FPS) variables
     private long firstSystemTime = 0;
@@ -113,8 +128,6 @@ public class MainActivity extends Activity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //To maximize UI space, we declare our app to be full-screen
         setContentView(R.layout.activity_main);
 
-        initializeUI();
-
         /**
          * We check to make sure the device has a front-facing camera.
          * If it does not, we obscure the app with a notice informing the user they cannot
@@ -122,11 +135,11 @@ public class MainActivity extends Activity
          */
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
             isFrontFacingCameraDetected = false;
-            progressBar.setVisibility(View.INVISIBLE);
-            pleaseWaitTextView.setVisibility(View.INVISIBLE);
             TextView notFoundTextView = (TextView) findViewById(R.id.not_found_textview);
             notFoundTextView.setVisibility(View.VISIBLE);
         }
+
+        initializeUI();
 
         initializeCameraDetector();
     }
@@ -140,42 +153,47 @@ public class MainActivity extends Activity
         leftMetricsLayout = (LinearLayout) findViewById(R.id.left_metrics);
         rightMetricsLayout = (LinearLayout) findViewById(R.id.right_metrics);
         mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        menuLayout = (RelativeLayout) findViewById(R.id.affdexme_menu);
+        smilePct = (MetricView) findViewById(R.id.smile_pct);
+        browRaisePct = (MetricView) findViewById(R.id.brow_raise_pct);
+        browFurrowPct = (MetricView) findViewById(R.id.brow_furrow_pct);
+        frownPct = (MetricView) findViewById(R.id.frown_pct);
+        valencePct = (MetricView) findViewById(R.id.valence_pct);
+        engagementPct = (MetricView) findViewById(R.id.engagement_pct);
         fpsPct = (TextView) findViewById(R.id.fps_value);
+        smileName = (TextView) findViewById(R.id.smile_name);
+        browRaiseName = (TextView) findViewById(R.id.brow_raise_name);
+        browFurrowName = (TextView) findViewById(R.id.brow_furrow_name);
+        frownName = (TextView) findViewById(R.id.frown_name);
+        valenceName = (TextView) findViewById(R.id.valence_name);
+        engagementName = (TextView) findViewById(R.id.engagement_name);
         fpsName = (TextView) findViewById(R.id.fps_name);
+        fpsEditText = (EditText) findViewById(R.id.fps_edittext);
+        fpsEditTextName = (TextView) findViewById(R.id.fps_edittext_name);
+        fpsCheckbox = (CheckBox) findViewById(R.id.fps_checkbox);
+        trackingCheckbox = (CheckBox) findViewById(R.id.tracking_checkbox);
         cameraView = (SurfaceView) findViewById(R.id.camera_preview);
         drawingView = (DrawingView) findViewById(R.id.drawing_view);
-        settingsButton = (ImageButton) findViewById(R.id.settings_button);
-        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        pleaseWaitTextView = (TextView) findViewById(R.id.please_wait_textview);
-
-        //Initialize views to display metrics
-        metricNames = new TextView[NUM_METRICS_DISPLAYED];
-        metricNames[0] = (TextView) findViewById(R.id.metric_name_0);
-        metricNames[1] = (TextView) findViewById(R.id.metric_name_1);
-        metricNames[2] = (TextView) findViewById(R.id.metric_name_2);
-        metricNames[3] = (TextView) findViewById(R.id.metric_name_3);
-        metricNames[4] = (TextView) findViewById(R.id.metric_name_4);
-        metricNames[5] = (TextView) findViewById(R.id.metric_name_5);
-        metricDisplays = new MetricDisplay[NUM_METRICS_DISPLAYED];
-        metricDisplays[0] = (MetricDisplay) findViewById(R.id.metric_pct_0);
-        metricDisplays[1] = (MetricDisplay) findViewById(R.id.metric_pct_1);
-        metricDisplays[2] = (MetricDisplay) findViewById(R.id.metric_pct_2);
-        metricDisplays[3] = (MetricDisplay) findViewById(R.id.metric_pct_3);
-        metricDisplays[4] = (MetricDisplay) findViewById(R.id.metric_pct_4);
-        metricDisplays[5] = (MetricDisplay) findViewById(R.id.metric_pct_5);
 
         //Load Application Font and set UI Elements to use it
         Typeface face = Typeface.createFromAsset(getAssets(), "fonts/Square.ttf");
-        for (TextView textView : metricNames) {
-            textView.setTypeface(face);
-        }
-        for (MetricDisplay metricDisplay : metricDisplays) {
-            metricDisplay.setTypeface(face);
-        }
+        smilePct.setTypeface(face);
+        browRaisePct.setTypeface(face);
+        browFurrowPct.setTypeface(face);
+        frownPct.setTypeface(face);
+        valencePct.setTypeface(face);
+        engagementPct.setTypeface(face);
+        smileName.setTypeface(face);
+        browRaiseName.setTypeface(face);
+        browFurrowName.setTypeface(face);
+        frownName.setTypeface(face);
+        valenceName.setTypeface(face);
+        engagementName.setTypeface(face);
         fpsPct.setTypeface(face);
         fpsName.setTypeface(face);
-        drawingView.setTypeface(face);
-        pleaseWaitTextView.setTypeface(face);
+        fpsEditTextName.setTypeface(face);
+        fpsCheckbox.setTypeface(face);
+        trackingCheckbox.setTypeface(face);
 
         //Hide left and right metrics by default (will be made visible when face detection starts)
         leftMetricsLayout.setAlpha(0);
@@ -192,6 +210,18 @@ public class MainActivity extends Activity
 
         //Attach event listeners to the menu and edit box
         activityLayout.setOnTouchListener(this);
+        menuLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                /*
+                 * This method effectively blocks the mainLayout from receiving a touch event
+                 * when the menu is pressed. This is to prevent the menu from closing if the user accidentally touches it
+                 * when aiming for a checkbox or edit box.
+                 */
+                return true;
+            }
+        });
+        fpsEditText.setOnEditorActionListener(this);
 
         /*
          * This app sets the View.SYSTEM_UI_FLAG_HIDE_NAVIGATION flag. Unfortunately, this flag causes
@@ -217,8 +247,20 @@ public class MainActivity extends Activity
          * that view will be painted with what the camera sees.
          */
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
+
         // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
         //detector.setLicensePath("YourLicenseFile");
+
+        // We want to detect all expressions, so turn on all classifiers.
+        detector.setDetectSmile(true);
+        detector.setDetectBrowFurrow(true);
+        detector.setDetectBrowRaise(true);
+        detector.setDetectEngagement(true);
+        detector.setDetectValence(true);
+        detector.setDetectLipCornerDepressor(true);
+
+        detector.setMaxProcessRate(detectorProcessRate);
+
         detector.setImageListener(this);
         detector.setFaceListener(this);
         detector.setCameraDetectorDimensionsListener(this);
@@ -231,75 +273,33 @@ public class MainActivity extends Activity
     public void onResume() {
         super.onResume();
         restoreApplicationSettings();
-        setMenuVisible(true);
-        isMenuShowingForFirstTime = true;
+        setMenuVisible(false); //always make the menu invisible by default
     }
 
     /*
      * We use the Shared Preferences object to restore application settings.
      */
     public void restoreApplicationSettings() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences = getSharedPreferences(PREFS_NAME, 0);
 
-        //restore camera processing rate
-        detectorProcessRate = PreferencesUtils.getFrameProcessingRate(sharedPreferences);
-        detector.setMaxProcessRate(detectorProcessRate);
+        detectorProcessRate = sharedPreferences.getInt("rate", detectorProcessRate);   //restore camera processing rate
+        fpsEditText.setText(String.valueOf(detectorProcessRate));
 
         if (sharedPreferences.getBoolean("fps",isFPSVisible)) {    //restore isFPSMetricVisible
+            fpsCheckbox.setChecked(true);
             setFPSVisible(true);
         } else {
+            fpsCheckbox.setChecked(false);
             setFPSVisible(false);
         }
 
         if (sharedPreferences.getBoolean("track",drawingView.getDrawPointsEnabled())) {  //restore isTrackingDotsVisible
             setTrackPoints(true);
+            trackingCheckbox.setChecked(true);
         } else {
             setTrackPoints(false);
+            trackingCheckbox.setChecked(false);
         }
-
-        if (sharedPreferences.getBoolean("measurements",drawingView.getDrawMeasurementsEnabled())) { //restore show measurements
-            setShowMeasurements(true);
-        } else {
-            setShowMeasurements(false);
-        }
-
-        //populate metric displays
-        for (int n = 0; n < NUM_METRICS_DISPLAYED; n++) {
-            activateMetric(n,PreferencesUtils.getMetricFromPrefs(sharedPreferences, n));
-        }
-    }
-
-    /**
-     * Populates a TextView to display a metric name and readies a MetricDisplay to display the value.
-     * Uses reflection to:
-     *  -enable the corresponding metric in the Detector object by calling Detector.setDetect<MetricName>()
-     *  -save the Method object that will be invoked on the Face object received in onImageResults() to get the metric score
-     */
-    void activateMetric(int index, MetricsManager.Metrics metric) {
-        metricNames[index].setText(MetricsManager.getUpperCaseName(metric));
-
-        Method getFaceScoreMethod = null; //The method that will be used to get a metric score
-        try {
-            //Enable metric detection
-            Detector.class.getMethod("setDetect" + MetricsManager.getCamelCase(metric), boolean.class).invoke(detector, true);
-
-            if (metric.getType() == MetricsManager.MetricType.Emotion) {
-                getFaceScoreMethod = Face.Emotions.class.getMethod("get" + MetricsManager.getCamelCase(metric), null);
-
-                //The MetricDisplay for Valence is unique; it shades it color depending on the metric value
-                if (metric == MetricsManager.Emotions.VALENCE) {
-                    metricDisplays[index].setIsShadedMetricView(true);
-                } else {
-                    metricDisplays[index].setIsShadedMetricView(false);
-                }
-            } else if (metric.getType() == MetricsManager.MetricType.Expression) {
-                getFaceScoreMethod = Face.Expressions.class.getMethod("get" + MetricsManager.getCamelCase(metric),null);
-            }
-        } catch (Exception e) {
-            Log.e(LOG_TAG,String.format("Error using reflection to generate methods for %s",metric.toString()));
-        }
-
-        metricDisplays[index].setMetricToDisplay(metric, getFaceScoreMethod);
     }
 
     /**
@@ -312,42 +312,26 @@ public class MainActivity extends Activity
     }
 
     /**
-     * We want to start the camera as late as possible, so it does not freeze the application before it has been visually resumed.
-     * We thus post a runnable that will take care of starting the camera.
+     * We start the camera as soon as the application has been given focus, which occurs as soon as the application has
+     * been opened or reopened. Although this can also occur when the application regains focus after a dialog box has been closed,
+     * the startCamera() method will not start the camera if it is already running.
      * We also reset variables used to calculate the Processed Frames Per Second.
      */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        if (hasFocus && isFrontFacingCameraDetected) {
-            cameraView.post(new Runnable() {
-                @Override
-                public void run() {
-                    mainWindowResumedTasks();
-                }
-            });
-        }
-    }
 
-    void mainWindowResumedTasks() {
-        startCamera();
-        if (!drawingView.isSurfaceDimensionsNeeded()) {
-            progressBarLayout.setVisibility(View.GONE);
-        }
-        resetFPSCalculations();
-        cameraView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (isMenuShowingForFirstTime) {
-                    setMenuVisible(false);
-                }
+        if (hasFocus && isFrontFacingCameraDetected) {
+
+            startCamera();
+
+            if (!drawingView.isSurfaceDimensionsNeeded()) {
+                progressBarLayout.setVisibility(View.GONE);
             }
-        },5000);
+            resetFPSCalculations();
+        }
     }
 
     void startCamera() {
-
-        //this app will always detect valence (it will also always detect measurements, but measurement don't need to be enabled)
-        detector.setDetectValence(true);
 
         if (!detector.isRunning()) {
             try {
@@ -363,7 +347,6 @@ public class MainActivity extends Activity
     public void onFaceDetectionStarted() {
         leftMetricsLayout.animate().alpha(1); //make left and right metrics appear
         rightMetricsLayout.animate().alpha(1);
-
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
 
@@ -375,7 +358,6 @@ public class MainActivity extends Activity
     void performFaceDetectionStoppedTasks() {
         leftMetricsLayout.animate().alpha(0); //make left and right metrics disappear
         rightMetricsLayout.animate().alpha(0);
-
         drawingView.invalidatePoints(); //inform the drawing thread that the latest facial tracking points are now invalid
         resetFPSCalculations(); //Since the FPS may be different whether a face is being tracked or not, reset variables.
     }
@@ -411,47 +393,29 @@ public class MainActivity extends Activity
         Face face = faces.get(0);
 
         //update metrics with latest face information. The metrics are displayed on a MetricView, a custom view with a .setScore() method.
-        for (MetricDisplay metricDisplay : metricDisplays) {
-            updateMetricScore(metricDisplay,face);
-        }
+        smilePct.setScore(face.getSmileScore());
+        browRaisePct.setScore(face.getBrowRaiseScore());
+        browFurrowPct.setScore(face.getBrowFurrowScore());
+        engagementPct.setScore(face.getEngagementScore());
+        frownPct.setScore(face.getLipCornerDepressorScore());
+        float valenceScore = face.getValenceScore();
+        valencePct.setScore(valenceScore);
 
         /**
-         * If the user has selected to have facial tracking dots or measurements drawn, we use face.getFacePoints() to send those points
+         * If the user has selected to have facial tracking dots drawn, we use face.getFacePoints() to send those points
          * to our drawing thread and also inform the thread what the valence score was, as that will determine the color
          * of the bounding box.
         */
-        if (drawingView.getDrawPointsEnabled() || drawingView.getDrawMeasurementsEnabled()) {
-            drawingView.setMetrics(face.measurements.orientation.getRoll(), face.measurements.orientation.getYaw(), face.measurements.orientation.getPitch(), face.measurements.getInterocularDistance(), face.emotions.getValence());
+        if (drawingView.getDrawPointsEnabled()) {
+            drawingView.setScore(valenceScore);
             drawingView.updatePoints(face.getFacePoints());
         }
     }
 
-
     /**
-     * Use the method that we saved in activateMetric() to get the metric score and display it
-     */
-    void updateMetricScore(MetricDisplay metricDisplay, Face face) {
-
-        MetricsManager.Metrics metric = metricDisplay.getMetricToDisplay();
-        float score = Float.NaN;
-
-        try {
-            if (metric.getType() == MetricsManager.MetricType.Emotion) {
-                score = (Float) metricDisplay.getFaceScoreMethod().invoke(face.emotions,null);
-                metricDisplay.setScore(score);
-            } else if (metric.getType() == MetricsManager.MetricType.Expression) {
-                score = (Float) metricDisplay.getFaceScoreMethod().invoke(face.expressions,null);
-            }
-        } catch (Exception e) {
-            Log.e(LOG_TAG,String.format("Error using reflecting to get %s score from face.",metric.toString()));
-        }
-        metricDisplay.setScore(score);
-    }
-
-    /**
-     * In this method, we inform our drawingView of the size of the incoming camera images.
-     * We also set the thickness (which controls the size of the dots and bounding box) based on a reference thickness, which
-     * should be the same whether the device is landscape or portrait.
+     * In this method, we update our drawingView to contain the dimensions of the frames coming from the camera so that drawingView
+     * can correctly draw the tracking dots. We also call drawingView.setThickness(), which sets the size of the tracking dots and the
+     * thickness of the bounding box.
      */
     void calculateImageDimensions(Frame image){
         ///referenceDimension will be used to determine the size of the facial tracking dots
@@ -473,8 +437,8 @@ public class MainActivity extends Activity
             referenceDimension = activityLayout.getWidth();
         }
 
-        drawingView.updateImageDimensions(imageWidth, imageHeight);
-        drawingView.setThickness((int) (referenceDimension / 160f));
+        drawingView.updateImageDimensions(imageWidth,imageHeight);
+        drawingView.setThickness((int)(referenceDimension/160f));
     }
 
 
@@ -522,15 +486,12 @@ public class MainActivity extends Activity
     public void onPause() {
         super.onPause();
         progressBarLayout.setVisibility(View.VISIBLE);
+        saveApplicationSettings();
         stopCamera();
     }
 
     private void stopCamera() {
         performFaceDetectionStoppedTasks();
-
-        detector.setDetectAllEmotions(false);
-        detector.setDetectAllExpressions(false);
-
         try {
             detector.stop();
         } catch (Exception e) {
@@ -538,15 +499,57 @@ public class MainActivity extends Activity
         }
     }
 
+    /**
+     * We use the SharedPreferences object to save application settings.
+    **/
+    public void saveApplicationSettings() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("fps", isFPSVisible);
+        editor.putBoolean("track", drawingView.getDrawPointsEnabled());
+        editor.putInt("rate", detectorProcessRate);
+        editor.commit();
+    }
+
+    public void fps_checkbox_click(View view) {
+        setFPSVisible(((CheckBox) view).isChecked());
+    }
+
+    public void tracking_checkbox_click(View view) {
+        setTrackPoints(((CheckBox) view).isChecked());
+    }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        /**
+         * When a user has selected  the Edit box to change the number of frames the detector processes per second
+         * and presses the 'DONE' button, the below block will be executed.
+         * */
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            int parsedInt = 0;
+            try {
+                parsedInt = Integer.parseInt(v.getText().toString());
+            } catch (Exception e) {
+                v.setText(String.valueOf(detectorProcessRate));
+                return false;
+            }
+            if (parsedInt > 0) {
+                detectorProcessRate = parsedInt;
+                detector.setMaxProcessRate(detectorProcessRate);
+                resetFPSCalculations(); //reset FPS variables, since changing the process rate should change the FPS.
+            } else {
+                v.setText(String.valueOf(detectorProcessRate));
+            }
+        }
+        return false; //return false regardless, so Android closes the keyboard when user presses 'DONE'
+    }
 
     /**
      * When the user taps the screen, hide the menu if it is visible and show it if it is hidden.
      * **/
     void setMenuVisible(boolean b){
-        isMenuShowingForFirstTime = false;
         isMenuVisible = b;
         if (b) {
-            settingsButton.setVisibility(View.VISIBLE);
+            menuLayout.setVisibility(View.VISIBLE);
 
             //We display the navigation bar again
             getWindow().getDecorView().setSystemUiVisibility(
@@ -555,6 +558,9 @@ public class MainActivity extends Activity
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
         else {
+            InputMethodManager imm = (InputMethodManager)getSystemService(
+                    Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(fpsEditText.getWindowToken(), 0);
 
             //We hide the navigation bar
             getWindow().getDecorView().setSystemUiVisibility(
@@ -566,7 +572,7 @@ public class MainActivity extends Activity
                             | View.SYSTEM_UI_FLAG_IMMERSIVE);
 
 
-            settingsButton.setVisibility(View.INVISIBLE);
+            menuLayout.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -588,10 +594,6 @@ public class MainActivity extends Activity
         drawingView.setDrawPointsEnabled(b);
     }
 
-    void setShowMeasurements(boolean b) {
-        drawingView.setDrawMeasurementsEnabled(b);
-    }
-
     void setFPSVisible(boolean b) {
         isFPSVisible = b;
         if (b) {
@@ -609,10 +611,6 @@ public class MainActivity extends Activity
             setMenuVisible(!isMenuVisible);
         }
         return false;
-    }
-
-    public void settings_button_click(View view) {
-        startActivity(new Intent(this,SettingsActivity.class));
     }
 }
 
