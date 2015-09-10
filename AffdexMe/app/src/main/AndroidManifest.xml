@@ -7,28 +7,48 @@
         android:targetSdkVersion="22" />
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.front" android:required="false"/>
 
     <application
+        android:name="com.affectiva.errorreporting.CustomApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:hardwareAccelerated="true"
+        android:label="@string/app_name">
         <activity
             android:name=".MainActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/MainActivityTheme"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:parentActivityName="com.affectiva.affdexme.MainActivity"
+            android:theme="@style/EditPreferencesTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.affectiva.affdexme.MainActivity" />
+        </activity>
+
+        <activity
+            android:name="com.affectiva.errorreporting.ErrorReporter"
+            android:theme="@android:style/Theme.DeviceDefault"
+            android:textAppearance="@android:style/TextAppearance.Large">
+            <intent-filter>
+                <action android:name="com.affectiva.REPORT_ERROR" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>
