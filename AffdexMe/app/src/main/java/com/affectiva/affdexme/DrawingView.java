@@ -16,8 +16,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.affectiva.android.affdex.sdk.detector.Face;
-
 
 /**
  * This class contains a SurfaceView and its own thread that draws to it.
@@ -332,7 +330,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig);
     }
-    
+
     public void setTypeface(Typeface face) {
         drawingViewConfig.textPaint.setTypeface(face);
         drawingViewConfig.textBorderPaint.setTypeface(face);

@@ -20,10 +20,10 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
-import static com.affectiva.affdexme.MainActivity.NUM_METRICS_DISPLAYED;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.affectiva.affdexme.MainActivity.NUM_METRICS_DISPLAYED;
 /**
  * A fragment to display a graphical menu which allows the user to select which metrics to display.
  *
