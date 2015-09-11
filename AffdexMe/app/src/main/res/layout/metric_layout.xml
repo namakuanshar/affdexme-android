@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:affdex="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:layout_height="@dimen/metric_viewgroup"
     android:layout_width="match_parent"
@@ -13,11 +12,12 @@
     <!-- Logo-->
     <ImageView
         android:layout_height="wrap_content"
-        android:layout_width="@dimen/image_width"
+        android:layout_width="@dimen/logo_width"
         android:layout_centerInParent="true"
         android:src="@drawable/affectiva_logo_clear_background"
+        android:contentDescription="@string/affectiva_logo_content_description"
         android:id="@+id/affectiva_logo" />
-    <!-- Left Metrics-->
+    <!-- Left MetricsManager-->
     <LinearLayout
         android:orientation="vertical"
         android:paddingLeft="@dimen/metric_panel_padding"
@@ -27,26 +27,23 @@
         android:id="@+id/left_metrics">
         <TextView
             style="@style/metricName"
-            android:text="@string/smile"
-            android:id="@+id/smile_name"
+            android:id="@+id/metric_name_0"
             />
-        <com.affectiva.affdexme.MetricView
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/smile_pct" />
+            android:id="@+id/metric_pct_0" />
         <TextView
             style="@style/metricName"
-            android:text="@string/brow_raise"
-            android:id="@+id/brow_raise_name" />
-        <com.affectiva.affdexme.MetricView
+            android:id="@+id/metric_name_1" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/brow_raise_pct" />
+            android:id="@+id/metric_pct_1" />
         <TextView
             style="@style/metricName"
-            android:text="@string/brow_furrow"
-            android:id="@+id/brow_furrow_name" />
-        <com.affectiva.affdexme.MetricView
+            android:id="@+id/metric_name_2" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/brow_furrow_pct" />
+            android:id="@+id/metric_pct_2" />
     </LinearLayout>
     <!-- FPS Counter-->
     <LinearLayout
@@ -70,10 +67,11 @@
             android:gravity="left|bottom"
             android:id="@+id/fps_value"
             android:textSize="@dimen/pct_text_size"
+            android:textColor="@color/letter_gray"
             android:layout_weight="1"
             />
     </LinearLayout>
-    <!-- Right Metrics-->
+    <!-- Right MetricsManager-->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
@@ -83,24 +81,21 @@
         android:id="@+id/right_metrics">
         <TextView
             style="@style/metricName"
-            android:text="@string/frown"
-            android:id="@+id/frown_name" />
-        <com.affectiva.affdexme.MetricView
+            android:id="@+id/metric_name_3" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/frown_pct" />
+            android:id="@+id/metric_pct_3" />
         <TextView
             style="@style/metricName"
-            android:text="@string/valence"
-            android:id="@+id/valence_name" />
-        <com.affectiva.affdexme.GradientMetricView
+            android:id="@+id/metric_name_4" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/valence_pct" />
+            android:id="@+id/metric_pct_4" />
         <TextView
             style="@style/metricName"
-            android:text="@string/engagement"
-            android:id="@+id/engagement_name" />
-        <com.affectiva.affdexme.MetricView
+            android:id="@+id/metric_name_5" />
+        <com.affectiva.affdexme.MetricDisplay
             style="@style/metricPct"
-            android:id="@+id/engagement_pct" />
+            android:id="@+id/metric_pct_5" />
     </LinearLayout>
 </RelativeLayout>

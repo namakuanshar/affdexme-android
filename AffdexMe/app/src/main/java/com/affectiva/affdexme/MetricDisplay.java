@@ -9,11 +9,15 @@ import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.View;
 import java.lang.Math;
+import java.lang.reflect.Method;
 
 /**
  * The MetricView class is used to display metric scores on top of colored bars whose color depend on the score.
  */
-public class MetricView extends View {
+public class MetricDisplay extends View {
+
+    MetricsManager.Metrics metricToDisplay; //indicates which of the 24 Affectiva Emotions and Expressions this view is displaying
+    Method faceScoreMethod;
 
     float midX = 0; //coordinates of the center of the view
     float midY = 0;
@@ -26,18 +30,26 @@ public class MetricView extends View {
     float right = 0;
     float top = 0;
     float textBottom = 0; //tells our view where to draw the baseline of the font
+    boolean isShadedMetricView = false;
 
-    public MetricView(Context context) {
+    public MetricDisplay(Context context) {
         super(context);
         initResources(context,null);
     }
-    public MetricView(Context context, AttributeSet attrs) {
+    public MetricDisplay(Context context, AttributeSet attrs) {
         super(context,attrs);
         initResources(context,attrs);
     }
-    public MetricView(Context context, AttributeSet attrs, int styleID){
+    public MetricDisplay(Context context, AttributeSet attrs, int styleID){
         super(context, attrs, styleID);
         initResources(context,attrs);
+    }
+
+    void setIsShadedMetricView(boolean b) {
+        this.isShadedMetricView = b;
+        if (!b) {
+            boxPaint.setColor(Color.GREEN);
+        }
     }
 
     void initResources(Context context, AttributeSet attrs) {
@@ -74,14 +86,48 @@ public class MetricView extends View {
 
     }
 
+    public void setMetricToDisplay(MetricsManager.Metrics metricToDisplay, Method faceScoreMethod) {
+        this.metricToDisplay = metricToDisplay;
+        this.faceScoreMethod = faceScoreMethod;
+    }
+
+    public MetricsManager.Metrics getMetricToDisplay() {
+        return this.metricToDisplay;
+    }
+
+    public Method getFaceScoreMethod() {
+        return this.faceScoreMethod;
+    }
+
     public void setTypeface(Typeface face) {
         textPaint.setTypeface(face);
     }
 
     public void setScore(float s){
         text = String.format("%.0f%%", s);  //change the text of the view
-        left = midX - (halfWidth * (s / 100)); //change the coordinates at which the colored bar will be drawn
-        right = midX + (halfWidth * (s / 100));
+
+        //shading mode is turned on for Valence, which causes this view to shade its color according
+        //to the value of 's'
+        if (isShadedMetricView) {
+            if (s > 0) {
+                left = midX - (halfWidth * (s / 100));
+                right = midX + (halfWidth * (s / 100));
+            } else {
+                left = midX - (halfWidth * (-s / 100));
+                right = midX + (halfWidth * (-s / 100));
+            }
+            if (s > 0) {
+                float colorScore = ((100f-s)/100f)*255;
+                boxPaint.setColor(Color.rgb((int)colorScore,255,(int)colorScore));
+            } else {
+                float colorScore = ((100f+s)/100f)*255;
+                boxPaint.setColor(Color.rgb(255,(int)colorScore,(int)colorScore));
+            }
+        } else {
+            left = midX - (halfWidth * (s / 100)); //change the coordinates at which the colored bar will be drawn
+            right = midX + (halfWidth * (s / 100));
+        }
+
         invalidate(); //instruct Android to re-draw our view, now that the text has changed
     }
 
