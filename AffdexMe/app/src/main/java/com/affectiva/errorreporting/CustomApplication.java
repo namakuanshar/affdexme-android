@@ -3,9 +3,6 @@ package com.affectiva.errorreporting;
 import android.app.Application;
 import android.content.Intent;
 
-/**
- * Created by Alan on 8/21/2015.
- */
 public class CustomApplication extends Application {
 
     static volatile boolean wasErrorActivityStarted = false;
