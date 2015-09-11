@@ -59,7 +59,7 @@ import java.util.List;
  * - Build the project
  * - Run the app on an Android device with a front-facing camera
  *
- * Copyright (c) 2014 Affectiva. All rights reserved.
+ * Copyright (c) 2015 Affectiva. All rights reserved.
  */
 
 public class MainActivity extends Activity
