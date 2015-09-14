@@ -8,7 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.View;
-import java.lang.Math;
+
 import java.lang.reflect.Method;
 
 /**
