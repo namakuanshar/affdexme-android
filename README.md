@@ -18,9 +18,9 @@ The AffdexMe folder is an Android Studio project.
 In order to use this project, you will need to:
 - Obtain the Affectiva Android SDK 
 - Copy the contents of the SDK's assets folder into this project's assets folder
-- Copy the contents of the SDK's libs folder into this project's libs folder
-- Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's jniLibs folder
-- Add your license file to the /assets/Affdex folder and uncomment the line in the startCamera() method which specifies your license file path
+- Copy the contents of the SDK's libs folder into this project's libs folder under AffdexMe/app/lib
+- Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's jniLibs folder under AffdexMe/app/src/main/jniLibs
+- Add your license file to the /assets/Affdex folder and rename to license.txt. (Note: if you name the license file something else you will need to update the licensePath in the initializeCameraDetector() method in MainActivity)
 - Build the project
 - Run the app on an Android device with a front-facing camera
 
