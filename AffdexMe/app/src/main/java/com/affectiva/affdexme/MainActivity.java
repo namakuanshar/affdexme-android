@@ -57,10 +57,10 @@ import com.affectiva.android.affdex.sdk.detector.Face;
  * In order to use this project, you will need to:
  * - Obtain the SDK from Affectiva (visit http://www.affdex.com/mobile-sdk)
  * - Copy the SDK assets folder contents into this project's assets folder
- * - Copy the SDK libs folder contents into this project's libs folder
- * - Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's jniLibs folder
- * - Add your license file to the /assets/Affdex folder and uncomment the line in the startCamera() method
- * to type in your license file name
+ * - Copy the contents of the SDK's libs folder into this project's libs folder under AffdexMe/app/lib
+ * - Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's jniLibs folder under AffdexMe/app/src/main/jniLibs
+ * - Add your license file to the /assets/Affdex folder and rename to license.txt. 
+ * (Note: if you name the license file something else you will need to update the licensePath in the initializeCameraDetector() method in MainActivity)
  * - Build the project
  * - Run the app on an Android device with a front-facing camera
  *
@@ -242,10 +242,11 @@ public class MainActivity extends Activity
          * the camera. If a SurfaceView is passed in as the last argument to the constructor,
          * that view will be painted with what the camera sees.
          */
-        detector = new CameraDetector(this, cameraType, cameraView);
-        //TODO: this method SHOULD NOT be included in sample code release (customer should enter their own license file);
-        // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
-        detector.setLicensePath("YourLicenseFile");
+
+        detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
+
+		// update the license path here if you name your file something else
+        detector.setLicensePath("license.txt");
         detector.setImageListener(this);
         detector.setFaceListener(this);
         detector.setOnCameraEventListener(this);
