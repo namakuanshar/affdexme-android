@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -242,8 +243,9 @@ public class MainActivity extends Activity
          * that view will be painted with what the camera sees.
          */
         detector = new CameraDetector(this, cameraType, cameraView);
+        //TODO: this method SHOULD NOT be included in sample code release (customer should enter their own license file);
         // NOTE: uncomment the line below and replace "YourLicenseFile" with your license file, which should be stored in /assets/Affdex/
-        //detector.setLicensePath("YourLicenseFile");
+        detector.setLicensePath("YourLicenseFile");
         detector.setImageListener(this);
         detector.setFaceListener(this);
         detector.setOnCameraEventListener(this);
@@ -258,7 +260,6 @@ public class MainActivity extends Activity
         restoreApplicationSettings();
         setMenuVisible(true);
         isMenuShowingForFirstTime = true;
-        mainWindowResumedTasks();
     }
 
     /*
@@ -337,6 +338,23 @@ public class MainActivity extends Activity
         numberOfFrames = 0;
     }
 
+    /**
+     * We want to start the camera as late as possible, so it does not freeze the application before it has been visually resumed.
+     * We thus post a runnable that will take care of starting the camera.
+     * We also reset variables used to calculate the Processed Frames Per Second.
+     */
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus && isFrontFacingCameraDetected) {
+            cameraView.post(new Runnable() {
+                @Override
+                public void run() {
+                    mainWindowResumedTasks();
+                }
+            });
+        }
+    }
+
     void mainWindowResumedTasks() {
 
         startDetector();
@@ -345,7 +363,6 @@ public class MainActivity extends Activity
             progressBarLayout.setVisibility(View.GONE);
         }
         resetFPSCalculations();
-
         cameraView.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -423,7 +440,7 @@ public class MainActivity extends Activity
          * If the user has selected to have facial tracking dots or measurements drawn, we use face.getFacePoints() to send those points
          * to our drawing thread and also inform the thread what the valence score was, as that will determine the color
          * of the bounding box.
-        */
+         */
         if (drawingView.getDrawPointsEnabled() || drawingView.getDrawMeasurementsEnabled()) {
             drawingView.setMetrics(face.measurements.orientation.getRoll(), face.measurements.orientation.getYaw(), face.measurements.orientation.getPitch(), face.measurements.getInterocularDistance(), face.emotions.getValence());
             drawingView.updatePoints(face.getFacePoints(),mirrorPoints);
@@ -577,7 +594,7 @@ public class MainActivity extends Activity
         startActivity(new Intent(this, SettingsActivity.class));
     }
 
-    /* onCameraStarted event not available until SDK 2.02
+    /* onCameraStarted is a feature of SDK 2.02, commenting out for 2.01
     @Override
     public void onCameraStarted(boolean b, Throwable throwable) {
         if (throwable != null) {
@@ -594,13 +611,16 @@ public class MainActivity extends Activity
             cameraPreviewWidth = cameraWidth;
             cameraPreviewHeight = cameraHeight;
         }
-        drawingView.setThickness((int)(cameraWidth/100f));
+        drawingView.setThickness((int)(cameraPreviewWidth/100f));
 
         mainLayout.post(new Runnable() {
             @Override
             public void run() {
-                int layoutWidth = mainLayout.getWidth();
-                int layoutHeight = mainLayout.getHeight();
+                //Get the screen width and height, and calculate the new app width/height based on the surfaceview aspect ratio.
+                DisplayMetrics displaymetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+                int layoutWidth = displaymetrics.widthPixels;
+                int layoutHeight = displaymetrics.heightPixels;
 
                 if (cameraPreviewWidth == 0 || cameraPreviewHeight == 0 || layoutWidth == 0 || layoutHeight == 0)
                     return;

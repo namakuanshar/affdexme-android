@@ -1,12 +1,9 @@
 package com.affectiva.affdexme;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.TextureView;
 import android.view.View;

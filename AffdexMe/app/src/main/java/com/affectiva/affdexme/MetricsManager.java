@@ -1,7 +1,5 @@
 package com.affectiva.affdexme;
 
-import java.lang.StringBuilder;
-
 /**
  * A class containing:
  *  -enumerations representing the Emotion and Expressions featured in the Affectiva SDK.

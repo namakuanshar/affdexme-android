@@ -325,7 +325,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig);
     }
-    
+
     public void setTypeface(Typeface face) {
         drawingViewConfig.textPaint.setTypeface(face);
         drawingViewConfig.textBorderPaint.setTypeface(face);

@@ -1,7 +1,6 @@
 package com.affectiva.errorreporting;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -13,9 +12,6 @@ import com.affectiva.affdexme.R;
 import java.text.DateFormat;
 import java.util.Date;
 
-/**
- * Created by Alan on 8/21/2015.
- */
 public class ErrorReporter extends Activity implements View.OnClickListener {
 
     String errorMessage;

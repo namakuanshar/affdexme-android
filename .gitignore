@@ -25,11 +25,3 @@ proguard/
 
 # Log Files
 *.log
-
-#Affectiva SDK files
-AffdexMe/app/libs/*
-AffdexMe/app/src/main/jniLibs/*
-AffdexMe/app/src/main/assets/Affdex
-
-
-
