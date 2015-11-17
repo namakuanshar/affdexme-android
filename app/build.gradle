@@ -17,6 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['native-libs']
+            jni.srcDirs = [] //disable automatic ndk-build
+        }
+    }
 }
 
 dependencies {
