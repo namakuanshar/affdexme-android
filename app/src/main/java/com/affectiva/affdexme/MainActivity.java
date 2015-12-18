@@ -246,7 +246,8 @@ public class MainActivity extends Activity
         detector = new CameraDetector(this, CameraDetector.CameraType.CAMERA_FRONT, cameraView);
 
 		// update the license path here if you name your file something else
-        detector.setLicensePath("license.txt");
+//        detector.setLicensePath("license.txt");
+        detector.setLicensePath("Affectiva.license");
         detector.setImageListener(this);
         detector.setFaceListener(this);
         detector.setOnCameraEventListener(this);
