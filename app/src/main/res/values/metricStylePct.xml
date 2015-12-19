@@ -6,6 +6,6 @@
         <item name="android:layout_gravity">center</item>
         <item name="textColor">@color/letter_gray</item>
         <item name="textSize">@dimen/pct_text_size</item>
-        <item name="barLength">@dimen/metric_view_bar_length</item>
+        <item name="metricBarLength">@dimen/metric_view_bar_length</item>
     </style>
 </resources>

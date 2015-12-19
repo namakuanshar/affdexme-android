@@ -69,7 +69,7 @@ public class MetricDisplay extends View {
             textPaint.setColor(a.getColor(R.styleable.custom_attributes_textColor, Color.BLACK));
             textSize = a.getDimensionPixelSize(R.styleable.custom_attributes_textSize, textSize);
             textPaint.setTextSize(textSize);
-            halfWidth = a.getDimensionPixelSize(R.styleable.custom_attributes_barLength,100)/2;
+            halfWidth = a.getDimensionPixelSize(R.styleable.custom_attributes_metricBarLength,100)/2;
             a.recycle();
         } else {
             textPaint.setColor(Color.BLACK);

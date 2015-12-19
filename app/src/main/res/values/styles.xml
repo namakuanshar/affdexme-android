@@ -1,5 +1,5 @@
 <resources>
-    <style name="MainActivityTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+    <style name="MainActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/black</item>
     </style>
 

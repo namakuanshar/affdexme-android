@@ -6,6 +6,11 @@
     <string name="loading">Loading&#8230;</string>
     <string name="settings_content_description">Settings</string>
 
+    <string name="insufficient_permissions">Insufficient Permissions</string>
+    <string name="permissions_needed_explanation">This app requires the permission to access your camera to be able to gather facial images to process, and permission to write to the storage on your device so that we can temporarily store video data there while we process it.</string>
+    <string name="error">Error</string>
+    <string name="understood">Understood</string>
+
     <!--MetricSelectionFragment strings-->
     <string name="clear_all">Clear All</string>
     <string name="metric_chooser_default_message">0 metrics chosen.</string>
@@ -31,4 +36,5 @@
 
     <string name="show_fps_title">Show FPS</string>
     <string name="show_fps_message">Display the actual processed frames per second.</string>
+    <string name="retry">Retry</string>
 </resources>

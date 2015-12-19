@@ -8,7 +8,7 @@ In order to use this project, you will need to:
 - Obtain the Affectiva Android SDK (visit http://www.affectiva.com/solutions/apis-sdks/)
 - Copy the contents of the SDK's assets folder into this project's app/src/main/assets folder
 - Copy the contents of the SDK's libs folder into this project's app/libs folder
-- Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's app/native-libs folder
+- Copy the armeabi-v7a folder (found in the SDK libs folder) into this project's app/jniLibs folder
 - Copy your license file to this project's app/src/main/assets/Affdex folder and rename to license.txt
 - Build the project
 - Run the app and smile!

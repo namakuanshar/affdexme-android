@@ -3,7 +3,7 @@
     <declare-styleable name="custom_attributes">
         <attr name="textSize" format="dimension" />
         <attr name="textColor" format="color"/>
-        <attr name="barLength" format="dimension"/>
+        <attr name="metricBarLength" format="dimension"/>
         <attr name="textDepth" format="dimension"/>
     </declare-styleable>
     <declare-styleable name="drawing_view_attributes">
