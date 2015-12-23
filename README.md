@@ -15,4 +15,6 @@ In order to use this project, you will need to:
 
 See the comment section at the top of the MainActivity.java file for more information.
 
-Copyright (c) 2014-2015 Affectiva. All rights reserved.
+***
+
+This app uses some of the excellent [Emoji One emojis](http://emojione.com).

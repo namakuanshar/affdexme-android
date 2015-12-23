@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.support.v4.content.ContextCompat;
 import android.view.MenuItem;
 
 import java.util.List;
@@ -16,18 +17,10 @@ public class SettingsActivity extends PreferenceActivity {
     public void onCreate(Bundle savedBundleInstance) {
         super.onCreate(savedBundleInstance);
         ActionBar actionBar = getActionBar();
-        actionBar.setIcon(
-                new ColorDrawable(getResources().getColor(android.R.color.transparent)));
-        //actionBar.setDisplayHomeAsUpEnabled(true);
-
+        if (actionBar != null) {
+            actionBar.setIcon(new ColorDrawable(ContextCompat.getColor(getApplicationContext(), R.color.transparent_overlay)));
+        }
     }
-
-    /*
-    @Override
-    public boolean onNavigateUp() {
-        this.onBackPressed();
-        return true;
-    }*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -49,10 +42,7 @@ public class SettingsActivity extends PreferenceActivity {
     //Boilerplate method, required by Android API
     @Override
     protected boolean isValidFragment(String fragmentName) {
-        if (SettingsFragment.class.getName().equals(fragmentName) || MetricSelectionFragment.class.getName().equals(fragmentName)) {
-            return(true);
-        }
-        return(false);
+        return SettingsFragment.class.getName().equals(fragmentName) || MetricSelectionFragment.class.getName().equals(fragmentName);
     }
 
     //This fragment shows the preferences for the first header.
@@ -65,7 +55,4 @@ public class SettingsActivity extends PreferenceActivity {
             addPreferencesFromResource(R.xml.settings_preferences);
         }
     }
-
-    //The second fragment is defined in a separate file.
-
 }

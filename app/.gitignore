@@ -3,6 +3,8 @@
 /jniLibs/armeabi-v7a
 /libs/Affdex-sdk.jar
 /libs/Affdex-sdk-javadoc.jar
+/libs/javax.inject-1.jar
+/libs/dagger-1.2.2.jar
 /src/main/assets/Affdex/*license*
 /src/main/assets/Affdex/Classifiers
 /src/main/assets/Affdex/Classifiers/v_9

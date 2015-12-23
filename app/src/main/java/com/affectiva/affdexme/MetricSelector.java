@@ -1,12 +1,16 @@
 package com.affectiva.affdexme;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -19,25 +23,35 @@ import android.widget.TextView;
  */
 public class MetricSelector extends FrameLayout {
 
-    private boolean isMetricSelected;
-    private MetricsManager.Metrics metric;
-
     TextureView textureView;
-
     TextView gridItemTextView;
     ImageView imageView;
     ImageView imageViewBeneath;
+    FrameLayout videoHolder;
     RelativeLayout backgroundLayout;
-
     int itemNotSelectedColor;
     int itemSelectedColor;
     int itemSelectedOverLimitColor;
-
     Uri[] videoResourceURIs;
     int videoResourceURIIndex;
     TextView videoOverlay;
-
     int picId;
+    private boolean isMetricSelected;
+    private boolean isEmoji;
+    private MetricsManager.Metrics metric;
+
+    // These three constructors only provided to allow the UI Editor to properly render this element
+    public MetricSelector(Context context) {
+        super(context);
+    }
+
+    public MetricSelector(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MetricSelector(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
 
     public MetricSelector(Activity hostActivity, LayoutInflater inflater, Resources res, String packageName, MetricsManager.Metrics metric) {
         super(hostActivity);
@@ -45,7 +59,11 @@ public class MetricSelector extends FrameLayout {
         this.metric = metric;
         this.isMetricSelected = false;
 
-       initContent(inflater, res, packageName);
+        if (metric.getType().equals(MetricsManager.MetricType.Emoji)) {
+            this.isEmoji = true;
+        }
+
+        initContent(inflater, res, packageName);
     }
 
     void initContent(LayoutInflater inflater, Resources res, String packageName) {
@@ -55,11 +73,13 @@ public class MetricSelector extends FrameLayout {
 
         videoOverlay = (TextView) content.findViewById(R.id.video_overlay);
 
-        int videoId = res.getIdentifier(resourceName,"raw",packageName);
-        if (metric == MetricsManager.Emotions.VALENCE) {
+        int videoId = res.getIdentifier(resourceName, "raw", packageName);
+        if (isEmoji) {
+            videoResourceURIs = null;
+        } else if (metric == MetricsManager.Emotions.VALENCE) {
             videoResourceURIs = new Uri[2];
-            videoResourceURIs[0] = Uri.parse(String.format("android.resource://%s/%d", packageName, videoId ));
-            videoResourceURIs[1] = Uri.parse(String.format("android.resource://%s/%d", packageName, res.getIdentifier(resourceName+"0","raw",packageName)));
+            videoResourceURIs[0] = Uri.parse(String.format("android.resource://%s/%d", packageName, videoId));
+            videoResourceURIs[1] = Uri.parse(String.format("android.resource://%s/%d", packageName, res.getIdentifier(resourceName + "0", "raw", packageName)));
         } else {
             videoResourceURIs = new Uri[1];
             videoResourceURIs[0] = Uri.parse(String.format("android.resource://%s/%d", packageName, videoId));
@@ -68,6 +88,9 @@ public class MetricSelector extends FrameLayout {
         videoResourceURIIndex = 0;
 
         //set up image
+        if (isEmoji) {
+            resourceName += "_emoji";
+        }
         picId = res.getIdentifier(resourceName, "drawable", packageName);
         imageView = (ImageView) content.findViewById(R.id.grid_item_image_view);
         imageViewBeneath = (ImageView) content.findViewById(R.id.grid_item_image_view_beneath);
@@ -75,14 +98,15 @@ public class MetricSelector extends FrameLayout {
         imageViewBeneath.setImageResource(picId);
         imageViewBeneath.setVisibility(GONE);
 
+        videoHolder = (FrameLayout) content.findViewById(R.id.video_holder);
         backgroundLayout = (RelativeLayout) content.findViewById(R.id.grid_item_background);
 
         gridItemTextView = (TextView) content.findViewById(R.id.grid_item_text);
         gridItemTextView.setText(MetricsManager.getCapitalizedName(metric));
 
-        itemSelectedOverLimitColor = res.getColor(R.color.grid_item_chosen_over_limit);
-        itemNotSelectedColor = res.getColor(R.color.grid_item_not_chosen);
-        itemSelectedColor = res.getColor(R.color.grid_item_chosen);
+        itemSelectedOverLimitColor = ContextCompat.getColor(getContext(), R.color.grid_item_chosen_over_limit);
+        itemNotSelectedColor = ContextCompat.getColor(getContext(), R.color.grid_item_not_chosen);
+        itemSelectedColor = ContextCompat.getColor(getContext(), R.color.grid_item_chosen);
     }
 
     boolean getIsSelected() {
@@ -105,7 +129,15 @@ public class MetricSelector extends FrameLayout {
 
     void displayVideo(TextureView videoView) {
         textureView = videoView;
-        backgroundLayout.addView(textureView, 1);
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(textureView.getLayoutParams());
+
+        // set the video to the same height and width of the actual bitmap inside the imageview
+        int[] imageAttr = ImageHelper.getBitmapPositionInsideImageView(imageView);
+        params.width = imageAttr[2]; //width
+        params.height = imageAttr[3]; //height
+
+        textureView.setLayoutParams(params);
+        videoHolder.addView(textureView);
         textureView.setVisibility(VISIBLE);
         videoOverlay.setVisibility(VISIBLE);
     }
@@ -113,7 +145,7 @@ public class MetricSelector extends FrameLayout {
     void removeVideo() {
         if (textureView != null) {
             textureView.setVisibility(GONE);
-            backgroundLayout.removeView(textureView);
+            videoHolder.removeView(textureView);
             textureView = null;
         }
         videoOverlay.setVisibility(GONE);
@@ -128,12 +160,15 @@ public class MetricSelector extends FrameLayout {
     }
 
     Uri getNextVideoResourceURI() {
+        if (isEmoji) {
+            return null;
+        }
         if (metric == MetricsManager.Emotions.VALENCE) {
             if (videoResourceURIIndex == 0) {
-                videoOverlay.setText("NEGATIVE");
+                videoOverlay.setText(R.string.negative);
                 videoOverlay.setTextColor(Color.RED);
             } else {
-                videoOverlay.setText("POSITIVE");
+                videoOverlay.setText(R.string.positive);
                 videoOverlay.setTextColor(Color.GREEN);
             }
         }
@@ -163,7 +198,4 @@ public class MetricSelector extends FrameLayout {
             backgroundLayout.setBackgroundColor(itemNotSelectedColor);
         }
     }
-
-
-
 }
