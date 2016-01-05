@@ -1,3 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  - Copyright (c) 2016 Affectiva Inc.
+  - See the file license.txt for copying permission.
+  -->
+
 <resources>
     <!--MainActivity strings-->
     <string name="not_found">Sorry, AffdexMe requires the use of a front-facing camera, which was not found on your device.</string>
@@ -30,9 +37,7 @@
     <string name="show_tracking_title">Show Tracking Dots</string>
     <string name="show_tracking_message">Display tracking dots and bounding box.</string>
     <string name="show_appearance_title">Show Appearance Indicators</string>
-    <string name="show_appearance_message">Display appearance markers to the left of the bounding box.</string>
-    <string name="show_measurements_title">Show Measurements</string>
-    <string name="show_measurements_message">Display roll, yaw, pitch, and interocular distance.</string>
+    <string name="show_appearance_message">Display appearance markers adjacent to the bounding box.</string>
     <string name="show_fps_title">Show FPS</string>
     <string name="show_fps_message">Display the actual processed frames per second.</string>
     <string name="show_emoji_title">Show Emoji Indicators</string>

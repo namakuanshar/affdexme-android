@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2016 Affectiva Inc.
+ * See the file license.txt for copying permission.
+ */
+
 package com.affectiva.affdexme;
 
 import android.content.Context;
