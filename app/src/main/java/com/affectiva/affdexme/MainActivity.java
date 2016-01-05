@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity
 
     public static final int MAX_SUPPORTED_FACES = 4;
     public static final int NUM_METRICS_DISPLAYED = 6;
-    private static final String LOG_TAG = "Affectiva";
+    private static final String LOG_TAG = "AffdexMe";
     private static final int AFFDEXME_PERMISSIONS_REQUEST = 42;  //value is arbitrary (between 0 and 255)
     int cameraPreviewWidth = 0;
     int cameraPreviewHeight = 0;

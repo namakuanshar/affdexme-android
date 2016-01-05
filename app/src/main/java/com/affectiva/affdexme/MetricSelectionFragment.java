@@ -31,7 +31,7 @@ import static com.affectiva.affdexme.MainActivity.NUM_METRICS_DISPLAYED;
  */
 public class MetricSelectionFragment extends Fragment implements View.OnClickListener {
 
-    final static String LOG_TAG = "Affectiva";
+    final static String LOG_TAG = "AffdexMe";
 
     int numberOfSelectedItems = 0;
 
@@ -267,7 +267,7 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
                 item.setOnClickListener(this);
                 gridLayout.addView(item);
             } else {
-                Log.e(this.getClass().getSimpleName(), "Unknown MetricSelector item for Metric: " + metric.toString());
+                Log.e(LOG_TAG, "Unknown MetricSelector item for Metric: " + metric.toString());
             }
         }
         currentRow.value += 1; //point currentRow to row where next views should be added

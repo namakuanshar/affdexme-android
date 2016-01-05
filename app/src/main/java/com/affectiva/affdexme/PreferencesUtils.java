@@ -9,6 +9,7 @@ import android.util.Log;
 public class PreferencesUtils {
 
     static final int DEFAULT_FPS = 20;
+    private final static String LOG_TAG = "AffdexMe";
 
     /**
      * Attempt to parse and return FPS set by user. If the FPS is invalid, we set it to be the default FPS.
@@ -87,21 +88,21 @@ public class PreferencesUtils {
             emotion = MetricsManager.Emotions.valueOf(metricString);
             return emotion;
         } catch (IllegalArgumentException emotionParseFailed) {
-            Log.v(PreferencesUtils.class.getSimpleName(), "Not an Emotion...");
+            Log.v(LOG_TAG, "Not an Emotion...");
         }
         try {
             MetricsManager.Expressions expression;
             expression = MetricsManager.Expressions.valueOf(metricString);
             return expression;
         } catch (IllegalArgumentException expressionParseFailed) {
-            Log.v(PreferencesUtils.class.getSimpleName(), "Not an Expression...");
+            Log.v(LOG_TAG, "Not an Expression...");
         }
         try {
             MetricsManager.Emojis emoji;
             emoji = MetricsManager.Emojis.getEnum(metricString);
             return emoji;
         } catch (IllegalArgumentException expressionParseFailed) {
-            Log.v(PreferencesUtils.class.getSimpleName(), "Not an Emoji...");
+            Log.v(LOG_TAG, "Not an Emoji...");
         }
         throw new IllegalArgumentException("String did not match any known metric");
     }

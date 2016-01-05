@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class ImageHelper {
 
-    private static final String LOG_TAG = ImageHelper.class.getSimpleName();
+    private static final String LOG_TAG = "AffdexMe";
 
     // Prevent instantiation of this object
     private ImageHelper() {
