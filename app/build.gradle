@@ -10,9 +10,15 @@ android {
         targetSdkVersion 22
         versionCode 14
         versionName "2.0.0"
+        setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
     buildTypes {
+        debug {
+            resValue 'string', 'app_name', 'AffdexMeDbg'
+            applicationIdSuffix ".debug"
+        }
         release {
+            resValue 'string', 'app_name', 'AffdexMe'
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -41,4 +47,19 @@ dependencies {
 	//compile 'com.android.support:support-v4:22.2.0'
     //compile 'com.google.android.gms:play-services:7.5.0'
 	
+}
+
+// build a signed release apk only if the environment is configured
+// with the properties that let us access the keystore.  you can put
+// them into ~/.gradle/gradle.properties
+if (project.hasProperty('releaseKeystoreFile')) {
+    android.signingConfigs {
+        release {
+            storeFile file(releaseKeystoreFile)
+            storePassword releaseKeystorePassword
+            keyAlias releaseKeyAlias
+            keyPassword releaseKeyPassword
+        }
+    }
+    android.buildTypes.release.signingConfig = android.signingConfigs.release
 }

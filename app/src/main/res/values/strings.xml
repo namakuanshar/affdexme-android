@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">AffdexMe</string>
-
     <!--MainActivity strings-->
     <string name="not_found">Sorry, AffdexMe requires the use of a front-facing camera, which was not found on your device.</string>
     <string name="affectiva_logo_content_description">Affectiva Logo</string>
