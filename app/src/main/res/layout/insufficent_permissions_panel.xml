@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/bottom_padding"
         android:gravity="center"
-        android:text="@string/permissions_needed_explanation" />
+        android:text="@string/permissions_camera_needed_explanation" />
 
     <Button
         android:id="@+id/retryPermissionsButton"

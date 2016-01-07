@@ -19,11 +19,13 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Process;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import com.affectiva.android.affdex.sdk.detector.Face;
 
@@ -52,6 +54,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder surfaceHolder;
     private DrawingThread drawingThread; //DrawingThread object
     private DrawingViewConfig drawingViewConfig;
+    private DrawingThreadEventListener listener;
 
     //three constructors required of any custom view
     public DrawingView(Context context) {
@@ -73,11 +76,34 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }
 
+    public void setEventListener(DrawingThreadEventListener listener) {
+        this.listener = listener;
+
+        if (drawingThread != null) {
+            drawingThread.setEventListener(listener);
+        }
+    }
+
+    public void requestBitmap() {
+        if (listener == null) {
+            String msg = "Attempted to request screenshot without first attaching event listener";
+            Log.e(LOG_TAG, msg);
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (drawingThread == null || drawingThread.isStopped()) {
+            String msg = "Attempted to request screenshot without a running drawing thread";
+            Log.e(LOG_TAG, msg);
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        drawingThread.requestCaptureBitmap = true;
+    }
+
     void initView() {
         surfaceHolder = getHolder(); //The SurfaceHolder object will be used by the thread to request canvas to draw on SurfaceView
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT); //set to Transparent so this surfaceView does not obscure the one it is overlaying (the one displaying the camera).
         surfaceHolder.addCallback(this); //become a Listener to the three events below that SurfaceView generates
-
         drawingViewConfig = new DrawingViewConfig();
 
         //Default values
@@ -133,7 +159,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
         drawingViewConfig.setDominantEmotionLabelPaints(emotionLabelPaint, emotionValuePaint);
         drawingViewConfig.setDominantEmotionMetricBarConfig(metricBarPaint, metricBarWidth);
-        drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig);
+        drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig, listener);
 
         //statically load the emoji bitmaps on-demand and cache
         emojiMarkerBitmapToEmojiTypeMap = new HashMap<>();
@@ -147,7 +173,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (drawingThread.isStopped()) {
-            drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig);
+            drawingThread = new DrawingThread(surfaceHolder, drawingViewConfig, listener);
         }
         drawingThread.start();
     }
@@ -261,6 +287,10 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
+    interface DrawingThreadEventListener {
+        void onBitmapGenerated(Bitmap bitmap);
+    }
+
     class FacesSharer {
         boolean isPointsMirrored;
         List<Face> facesToDraw;
@@ -279,9 +309,11 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         private Paint boundingBoxPaint;
         private Paint dominantEmotionScoreBarPaint;
         private volatile boolean stopFlag = false; //boolean to indicate when thread has been told to stop
+        private volatile boolean requestCaptureBitmap = false; //boolean to indicate a snapshot of the surface has been requested
         private DrawingViewConfig config;
+        private DrawingThreadEventListener listener;
 
-        public DrawingThread(SurfaceHolder surfaceHolder, DrawingViewConfig con) {
+        public DrawingThread(SurfaceHolder surfaceHolder, DrawingViewConfig con, DrawingThreadEventListener listener) {
             mSurfaceHolder = surfaceHolder;
 
             //statically load the Appearance marker bitmaps so they only have to load once
@@ -303,8 +335,13 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
 
             config = con;
             sharer = new FacesSharer();
+            this.listener = listener;
 
             setThickness(config.drawThickness);
+        }
+
+        public void setEventListener(DrawingThreadEventListener listener) {
+            this.listener = listener;
         }
 
         void setValenceOfBoundingBox(float valence) {
@@ -359,18 +396,32 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
                  * After we are done drawing, we let go of the canvas using SurfaceHolder.unlockCanvasAndPost()
                  * **/
                 Canvas c = null;
+                Canvas screenshotCanvas = null;
+                Bitmap screenshotBitmap = null;
                 try {
                     c = mSurfaceHolder.lockCanvas();
+
+                    if (requestCaptureBitmap) {
+                        Rect surfaceBounds = mSurfaceHolder.getSurfaceFrame();
+                        screenshotBitmap = Bitmap.createBitmap(surfaceBounds.width(), surfaceBounds.height(), Bitmap.Config.ARGB_8888);
+                        screenshotCanvas = new Canvas(screenshotBitmap);
+                        requestCaptureBitmap = false;
+                    }
 
                     if (c != null) {
                         synchronized (mSurfaceHolder) {
                             c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //clear previous dots
-                            draw(c);
+                            draw(c, screenshotCanvas);
                         }
                     }
+
                 } finally {
                     if (c != null) {
                         mSurfaceHolder.unlockCanvasAndPost(c);
+                    }
+                    if (screenshotBitmap != null && listener != null) {
+                        listener.onBitmapGenerated(Bitmap.createBitmap(screenshotBitmap));
+                        screenshotBitmap.recycle();
                     }
                 }
             }
@@ -378,7 +429,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             config = null; //nullify object to avoid memory leak
         }
 
-        void draw(Canvas c) {
+        void draw(@NonNull Canvas c, @Nullable Canvas c2) {
             Face nextFaceToDraw;
             boolean mirrorPoints;
             boolean multiFaceMode;
@@ -399,6 +450,10 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
             while (nextFaceToDraw != null) {
 
                 drawFaceAttributes(c, nextFaceToDraw, mirrorPoints, multiFaceMode);
+
+                if (c2 != null) {
+                    drawFaceAttributes(c2, nextFaceToDraw, false, multiFaceMode);
+                }
 
                 synchronized (sharer) {
                     mirrorPoints = sharer.isPointsMirrored;

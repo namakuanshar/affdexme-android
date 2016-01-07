@@ -58,6 +58,19 @@
         android:scaleType="fitCenter"
         android:src="@drawable/camera_button_selector" />
 
+    <ImageButton
+        android:id="@+id/screenshot_button"
+        android:layout_width="@dimen/settings_button_size"
+        android:layout_height="@dimen/settings_button_size"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/camera_button"
+        android:layout_margin="@dimen/settings_button_margin"
+        android:background="@null"
+        android:contentDescription="Take screenshot"
+        android:onClick="takeScreenshot"
+        android:scaleType="fitCenter"
+        android:src="@drawable/screenshot_button_selector" />
+
     <include layout="@layout/insufficent_permissions_panel" />
 
     <RelativeLayout
