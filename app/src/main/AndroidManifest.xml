@@ -6,6 +6,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.affectiva.affdexme">
 
     <uses-permission android:name="android.permission.CAMERA" />
@@ -22,6 +23,7 @@
         android:required="false" />
 
     <application
+        tools:replace="android:allowBackup,android:label"
         android:name="com.affectiva.errorreporting.CustomApplication"
         android:allowBackup="false"
         android:hardwareAccelerated="true"

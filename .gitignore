@@ -31,3 +31,6 @@ proguard/
 .idea
 .DS_Store
 /captures
+
+# Affdex SDK package
+app/libs/affdexsdk-*.aar
