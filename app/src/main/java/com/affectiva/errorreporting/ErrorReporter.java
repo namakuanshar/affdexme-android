@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2016 Affectiva Inc.
+ * See the file license.txt for copying permission.
+ */
+
 package com.affectiva.errorreporting;
 
 import android.app.Activity;
@@ -19,8 +24,7 @@ public class ErrorReporter extends Activity implements View.OnClickListener {
 
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE); // make a dialog without a titlebar
         setContentView(R.layout.error_reporter);
@@ -51,7 +55,7 @@ public class ErrorReporter extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        Intent intent = new Intent (Intent.ACTION_SEND);
+        Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("plain/text");
         intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"sdk@affectiva.com"});
         intent.putExtra(Intent.EXTRA_SUBJECT, "AffdexMe Crash Report");

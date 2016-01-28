@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2016 Affectiva Inc.
+ * See the file license.txt for copying permission.
+ */
+
 package com.affectiva.affdexme;
 
 import android.content.Context;
@@ -34,15 +39,17 @@ public class MetricDisplay extends View {
 
     public MetricDisplay(Context context) {
         super(context);
-        initResources(context,null);
+        initResources(context, null);
     }
+
     public MetricDisplay(Context context, AttributeSet attrs) {
-        super(context,attrs);
-        initResources(context,attrs);
+        super(context, attrs);
+        initResources(context, attrs);
     }
-    public MetricDisplay(Context context, AttributeSet attrs, int styleID){
+
+    public MetricDisplay(Context context, AttributeSet attrs, int styleID) {
         super(context, attrs, styleID);
-        initResources(context,attrs);
+        initResources(context, attrs);
     }
 
     void setIsShadedMetricView(boolean b) {
@@ -65,11 +72,11 @@ public class MetricDisplay extends View {
 
         //load and parse XML attributes
         if (attrs != null) {
-            TypedArray a = getContext().obtainStyledAttributes(attrs,R.styleable.custom_attributes,0,0);
+            TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.custom_attributes, 0, 0);
             textPaint.setColor(a.getColor(R.styleable.custom_attributes_textColor, Color.BLACK));
             textSize = a.getDimensionPixelSize(R.styleable.custom_attributes_textSize, textSize);
             textPaint.setTextSize(textSize);
-            halfWidth = a.getDimensionPixelSize(R.styleable.custom_attributes_barLength,100)/2;
+            halfWidth = a.getDimensionPixelSize(R.styleable.custom_attributes_metricBarLength, 100) / 2;
             a.recycle();
         } else {
             textPaint.setColor(Color.BLACK);
@@ -83,7 +90,6 @@ public class MetricDisplay extends View {
          */
         height = textSize;
         textBottom = height - 5;
-
     }
 
     public void setMetricToDisplay(MetricsManager.Metrics metricToDisplay, Method faceScoreMethod) {
@@ -103,7 +109,7 @@ public class MetricDisplay extends View {
         textPaint.setTypeface(face);
     }
 
-    public void setScore(float s){
+    public void setScore(float s) {
         text = String.format("%.0f%%", s);  //change the text of the view
 
         //shading mode is turned on for Valence, which causes this view to shade its color according
@@ -117,11 +123,11 @@ public class MetricDisplay extends View {
                 right = midX + (halfWidth * (-s / 100));
             }
             if (s > 0) {
-                float colorScore = ((100f-s)/100f)*255;
-                boxPaint.setColor(Color.rgb((int)colorScore,255,(int)colorScore));
+                float colorScore = ((100f - s) / 100f) * 255;
+                boxPaint.setColor(Color.rgb((int) colorScore, 255, (int) colorScore));
             } else {
-                float colorScore = ((100f+s)/100f)*255;
-                boxPaint.setColor(Color.rgb(255,(int)colorScore,(int)colorScore));
+                float colorScore = ((100f + s) / 100f) * 255;
+                boxPaint.setColor(Color.rgb(255, (int) colorScore, (int) colorScore));
             }
         } else {
             left = midX - (halfWidth * (s / 100)); //change the coordinates at which the colored bar will be drawn
@@ -133,29 +139,27 @@ public class MetricDisplay extends View {
 
     /**
      * set our view to be the minimum of the sizes that Android will allow and our desired sizes
-     * **/
+     **/
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension((int)Math.min(MeasureSpec.getSize(widthMeasureSpec), halfWidth *2), (int)Math.min(MeasureSpec.getSize(heightMeasureSpec),height));
+        setMeasuredDimension((int) Math.min(MeasureSpec.getSize(widthMeasureSpec), halfWidth * 2), (int) Math.min(MeasureSpec.getSize(heightMeasureSpec), height));
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        super.onSizeChanged(w,h,oldW,oldH);
-        midX = w/2;
-        midY = h/2;
+        super.onSizeChanged(w, h, oldW, oldH);
+        midX = w / 2;
+        midY = h / 2;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         //draws the colored bar that appears behind our score
-        canvas.drawRect(left,top,right,height, boxPaint);
+        canvas.drawRect(left, top, right, height, boxPaint);
         //draws the score
-        canvas.drawText(text,midX , textBottom, textPaint);
+        canvas.drawText(text, midX, textBottom, textPaint);
     }
-
-
 
 
 }

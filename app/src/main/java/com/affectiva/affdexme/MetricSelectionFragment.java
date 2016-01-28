@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2016 Affectiva Inc.
+ * See the file license.txt for copying permission.
+ */
+
 package com.affectiva.affdexme;
 
 import android.app.Activity;
@@ -10,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -24,13 +30,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static com.affectiva.affdexme.MainActivity.NUM_METRICS_DISPLAYED;
+
 /**
  * A fragment to display a graphical menu which allows the user to select which metrics to display.
- *
  */
 public class MetricSelectionFragment extends Fragment implements View.OnClickListener {
 
-    final static String LOG_TAG = "Affectiva";
+    final static String LOG_TAG = "AffdexMe";
 
     int numberOfSelectedItems = 0;
 
@@ -84,11 +90,9 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
                 }
         );
 
-        Resources res = getResources();
-        messageAtOrUnderLimitColor =  res.getColor(R.color.white);
-        messageOverLimitColor = res.getColor(R.color.red);
+        messageAtOrUnderLimitColor = ContextCompat.getColor(getActivity(), R.color.white);
+        messageOverLimitColor = ContextCompat.getColor(getActivity(), R.color.red);
     }
-
 
 
     /**
@@ -110,15 +114,15 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
 
         if (bundle != null) { //if we were passed a bundle, use its data to configure the MetricSelectors
             for (MetricsManager.Metrics metric : MetricsManager.getAllMetrics()) {
-                if (bundle.getBoolean(metric.toString(),false)) {
-                    selectItem(metricSelectors.get(metric),true,false);
+                if (bundle.getBoolean(metric.toString(), false)) {
+                    selectItem(metricSelectors.get(metric), true, false);
                 }
             }
-            
+
         } else { //otherwise, we pull the data from application preferences
             for (int i = 0; i < NUM_METRICS_DISPLAYED; i++) {
                 MetricsManager.Metrics chosenMetric = PreferencesUtils.getMetricFromPrefs(sharedPreferences, i);
-                selectItem(metricSelectors.get(chosenMetric),true,false);
+                selectItem(metricSelectors.get(chosenMetric), true, false);
             }
         }
     }
@@ -207,7 +211,7 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
             Log.e(LOG_TAG, "Desired Column Width too large! Unable to populate Grid");
             return;
         }
-        int columnWidth = (int)((float) gridWidth / (float)numColumns);
+        int columnWidth = (int) ((float) gridWidth / (float) numColumns);
 
         //This integer reference will be used across methods to keep track of how many rows we have created.
         //Each method we pass it into leaves it at a value indicating the next row number that views should be added to.
@@ -217,6 +221,10 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         addGridItems(currentRow, numColumns, inflater, res, columnWidth, MetricsManager.Emotions.values());
         addHeader("Expressions", currentRow, numColumns, inflater);
         addGridItems(currentRow, numColumns, inflater, res, columnWidth, MetricsManager.Expressions.values());
+
+        // If you wanted to add Emoji as selectable metrics, you would uncomment the two lines below
+//        addHeader("Emoji", currentRow, numColumns, inflater);
+//        addGridItems(currentRow, numColumns, inflater, res, columnWidth, MetricsManager.Emojis.values());
 
         gridLayout.setColumnCount(numColumns);
         gridLayout.setRowCount(currentRow.value);
@@ -253,18 +261,21 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
             }
 
             MetricSelector item = metricSelectors.get(metric);
+            if (item != null) {
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.width = size;
+                params.height = size;
+                params.columnSpec = GridLayout.spec(col);
+                params.rowSpec = GridLayout.spec(currentRow.value);
+                item.setLayoutParams(params);
 
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = size;
-            params.height = size;
-            params.columnSpec = GridLayout.spec(col);
-            params.rowSpec = GridLayout.spec(currentRow.value);
-            item.setLayoutParams(params);
-
-            item.setOnClickListener(this);
-            gridLayout.addView(item);
+                item.setOnClickListener(this);
+                gridLayout.addView(item);
+            } else {
+                Log.e(LOG_TAG, "Unknown MetricSelector item for Metric: " + metric.toString());
+            }
         }
-        currentRow.value +=1; //point currentRow to row where next views should be added
+        currentRow.value += 1; //point currentRow to row where next views should be added
     }
 
     @Override
@@ -294,18 +305,10 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         }
         metricSelector.setIsSelected(isSelected);
 
-        //Create and display message at the top
-        /*String dMetricsChosen;
-        if (numberOfSelectedItems == 1) {
-            dMetricsChosen = "1 metric chosen.";
-        } else {
-            dMetricsChosen = String.format("%d metrics chosen.",numberOfSelectedItems);
-        }*/
-
         if (numberOfSelectedItems == 1) {
             metricChooserTextView.setText("1 metric chosen.");
         } else {
-            metricChooserTextView.setText(String.format("%d metrics chosen.",numberOfSelectedItems));
+            metricChooserTextView.setText(String.format("%d metrics chosen.", numberOfSelectedItems));
         }
 
         if (numberOfSelectedItems <= NUM_METRICS_DISPLAYED) {
@@ -313,25 +316,11 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         } else {
             metricChooserTextView.setTextColor(messageOverLimitColor);
         }
-
-
-
-        /*if (numberOfSelectedItems < NUM_METRICS_DISPLAYED) {
-            metricChooserTextView.setTextColor(messageAtOrUnderLimitColor);
-            metricChooserTextView.setText(String.format("%s Choose %d more.", dMetricsChosen, NUM_METRICS_DISPLAYED - numberOfSelectedItems));
-        } else if (numberOfSelectedItems == NUM_METRICS_DISPLAYED) {
-            metricChooserTextView.setTextColor(messageAtOrUnderLimitColor);
-            metricChooserTextView.setText(dMetricsChosen);
-        } else {
-            metricChooserTextView.setTextColor(messageOverLimitColor);
-            metricChooserTextView.setText(String.format("%s Please de-select %d.", dMetricsChosen, numberOfSelectedItems - NUM_METRICS_DISPLAYED));
-        }*/
-
     }
 
     void clearItems() {
         for (MetricsManager.Metrics metric : MetricsManager.getAllMetrics()) {
-            selectItem(metricSelectors.get(metric),false,true);
+            selectItem(metricSelectors.get(metric), false, true);
         }
         updateAllGridItems();
     }
@@ -349,28 +338,39 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         fragmentMediaPlayer.destroy();
     }
 
+    /**
+     * These are not all the MediaPlayer states defined by Android, but they are all the ones we are interested in.
+     * Note that SafeMediaPlayer never stays in the STOPPED state, so we don't include it.
+     */
+    enum MediaPlayerState {
+        IDLE, INIT, PREPARED, PLAYING
+    }
+
+
+    interface OnSafeMediaPlayerPreparedListener {
+        void onSafeMediaPlayerPrepared();
+    }
+
     //IntRef represents a reference to a mutable integer value
     //It is used to keep track of how many rows have been created in the populateGrid() method
     class IntRef {
         public int value;
+
         public IntRef() {
             value = 0;
         }
     }
 
-
-
-
     /**
      * The MetricSelector objects in this fragment will play a video when selected. To keep memory usage low, we use only one MediaPlayer
      * object to control video playback. Video is rendered on a single TextureView.
      * Chain of events that lead to video playback:
-     *  -When a MetricSelector is clicked, the MediaPlayer.setDataSource() is called to set the video file
-     *  -The TextureView is added to the view hierarchy of the MetricSelector, causing the onSurfaceTextureAvailable callback to fire
-     *  -The TextureView is bound to the MediaPlayer through MediaPlayer.setSurface(), then MediaPlayer.prepareAsync() is called
-     *  -Once preparation is complete, MediaPlayer.start() is called
-     *  -MediaPlayer.stop() will be called when playback finishes or the item has been de-selected, at which point the TextureView will
-     *  be removed from the MetricSelector's view hierarchy, causing onSurfaceTextureDestroyed(), where we call MediaPlayer.setSurface(null)
+     * -When a MetricSelector is clicked, the MediaPlayer.setDataSource() is called to set the video file
+     * -The TextureView is added to the view hierarchy of the MetricSelector, causing the onSurfaceTextureAvailable callback to fire
+     * -The TextureView is bound to the MediaPlayer through MediaPlayer.setSurface(), then MediaPlayer.prepareAsync() is called
+     * -Once preparation is complete, MediaPlayer.start() is called
+     * -MediaPlayer.stop() will be called when playback finishes or the item has been de-selected, at which point the TextureView will
+     * be removed from the MetricSelector's view hierarchy, causing onSurfaceTextureDestroyed(), where we call MediaPlayer.setSurface(null)
      */
     class MetricSelectionFragmentMediaPlayer {
         SafeMediaPlayer safePlayer;
@@ -429,7 +429,7 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
 
             textureView = new TextureView(getActivity());
             textureView.setVisibility(View.GONE);
-            textureView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            textureView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
                 @Override
                 public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -457,8 +457,11 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         private void startVideoPlayback(MetricSelector metricSelector) {
             videoPlayingSelector = metricSelector;
             videoPlayingSelector.initIndex();
-            safePlayer.setDataSource(metricSelector.getNextVideoResourceURI());
-            metricSelector.displayVideo(textureView); //will cause onSurfaceTextureAvailable to fire
+            Uri videoUri = metricSelector.getNextVideoResourceURI();
+            if (videoUri != null) {
+                safePlayer.setDataSource(videoUri);
+                metricSelector.displayVideo(textureView); //will cause onSurfaceTextureAvailable to fire
+            }
         }
 
         private void endVideoPlayback() {
@@ -475,9 +478,9 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
         }
 
         void stopMetricSelectorPlayback(MetricSelector metricSelector) {
-                if (metricSelector == videoPlayingSelector) { //if de-selected item is a playing video, stop it
-                    endVideoPlayback();
-                }
+            if (metricSelector == videoPlayingSelector) { //if de-selected item is a playing video, stop it
+                endVideoPlayback();
+            }
         }
 
         public void destroy() {
@@ -489,18 +492,6 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
             return Build.VERSION.SDK_INT >= 17;
         }
 
-    }
-
-    /**
-     * These are not all the MediaPlayer states defined by Android, but they are all the ones we are interested in.
-     * Note that SafeMediaPlayer never stays in the STOPPED state, so we don't include it.
-     */
-    enum MediaPlayerState {
-        IDLE, INIT, PREPARED, PLAYING
-    };
-
-    interface OnSafeMediaPlayerPreparedListener {
-        void onSafeMediaPlayerPrepared();
     }
 
     /**
@@ -595,5 +586,3 @@ public class MetricSelectionFragment extends Fragment implements View.OnClickLis
     }
 
 }
-
-

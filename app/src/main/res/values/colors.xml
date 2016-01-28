@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  - Copyright (c) 2016 Affectiva Inc.
+  - See the file license.txt for copying permission.
+  -->
+
 <resources>
     <color name="transparent_overlay">#55ffffff</color>
     <color name="letter_gray">#514a40</color>
