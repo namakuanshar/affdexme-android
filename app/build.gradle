@@ -8,8 +8,8 @@ android {
         applicationId "com.affectiva.affdexme"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 492
-        versionName "3.0.0"
+        versionCode 493
+        versionName "3.0.1"
         setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
     buildTypes {
