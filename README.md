@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Affectiva/affdexme-android.svg)](https://travis-ci.org/Affectiva/affdexme-android)
 ![Affectiva Logo](http://developer.affectiva.com/images/logo.png)
 
 ###Copyright (c) 2016 Affectiva Inc. <br> See the file [license.txt](license.txt) for copying permission.
