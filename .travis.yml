@@ -9,10 +9,4 @@ android:
     - platform-tools
 
 script:
-  - wget http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/android/download_sdk.html
-  # copy the SDK's assets into app/src/main/assets/
-  - unzip download_sdk.html "src/main/assets/*" -d app
-  # copy the SDK's libs into app/libs/
-  - unzip download_sdk.html "libs/*" -d app
   - ./gradlew clean build test
-
