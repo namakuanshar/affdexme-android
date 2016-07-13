@@ -93,6 +93,6 @@
 -keepattributes Signature,*Annotation*
 
 -dontwarn javax.xml.stream.events.**
--dontwarn org.codehaus.jackson.**
+-dontwarn org.fasterxml.jackson.**
 -dontwarn org.apache.commons.logging.impl.**
 -dontwarn org.apache.http.conn.scheme.**
