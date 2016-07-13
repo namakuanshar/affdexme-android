@@ -9,7 +9,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 494
-        versionName "3.0.2"
+        versionName "3.1"
         setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
     buildTypes {
