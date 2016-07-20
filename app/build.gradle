@@ -37,7 +37,7 @@ android {
 
 dependencies {
     //include the Affdex SDK
-    compile('com.affectiva.android:affdexsdk:3.1')
+    compile('com.affectiva.android:affdexsdk:3.1-108')
 
     //include project dependencies
     compile 'com.android.support:support-v4:23.1.1'
