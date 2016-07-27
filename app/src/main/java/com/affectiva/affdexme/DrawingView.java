@@ -100,6 +100,7 @@ public class DrawingView extends SurfaceView implements SurfaceHolder.Callback {
         drawingThread.requestCaptureBitmap = true;
     }
 
+    @SuppressWarnings("ResourceType")
     void initView() {
         surfaceHolder = getHolder(); //The SurfaceHolder object will be used by the thread to request canvas to draw on SurfaceView
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT); //set to Transparent so this surfaceView does not obscure the one it is overlaying (the one displaying the camera).
