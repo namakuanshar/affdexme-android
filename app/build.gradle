@@ -8,7 +8,7 @@ android {
         applicationId "com.affectiva.affdexme"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 495
+        versionCode 683
         versionName "3.1.1"
         setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
