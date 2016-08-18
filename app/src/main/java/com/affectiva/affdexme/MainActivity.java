@@ -510,10 +510,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (sharedPreferences.getBoolean("appearance", drawingView.getDrawAppearanceMarkersEnabled())) {
-            detector.setDetectAllAppearance(true);
+            detector.setDetectAllAppearances(true);
             setShowAppearance(true);
         } else {
-            detector.setDetectAllAppearance(false);
+            detector.setDetectAllAppearances(false);
             setShowAppearance(false);
         }
 
@@ -881,7 +881,7 @@ public class MainActivity extends AppCompatActivity
 
         detector.setDetectAllEmotions(false);
         detector.setDetectAllExpressions(false);
-        detector.setDetectAllAppearance(false);
+        detector.setDetectAllAppearances(false);
         detector.setDetectAllEmojis(false);
     }
 
