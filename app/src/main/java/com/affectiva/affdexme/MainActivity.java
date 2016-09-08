@@ -443,9 +443,6 @@ public class MainActivity extends AppCompatActivity
          * that view will be painted with what the camera sees.
          */
         detector = new CameraDetector(this, cameraType, cameraView, (multiFaceModeEnabled ? MAX_SUPPORTED_FACES : 1), Detector.FaceDetectorMode.LARGE_FACES);
-
-        // update the license path here if you name your file something else
-        detector.setLicensePath("license.txt");
         detector.setImageListener(this);
         detector.setFaceListener(this);
         detector.setOnCameraEventListener(this);
@@ -513,10 +510,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (sharedPreferences.getBoolean("appearance", drawingView.getDrawAppearanceMarkersEnabled())) {
-            detector.setDetectAllAppearance(true);
+            detector.setDetectAllAppearances(true);
             setShowAppearance(true);
         } else {
-            detector.setDetectAllAppearance(false);
+            detector.setDetectAllAppearances(false);
             setShowAppearance(false);
         }
 
@@ -884,7 +881,7 @@ public class MainActivity extends AppCompatActivity
 
         detector.setDetectAllEmotions(false);
         detector.setDetectAllExpressions(false);
-        detector.setDetectAllAppearance(false);
+        detector.setDetectAllAppearances(false);
         detector.setDetectAllEmojis(false);
     }
 
