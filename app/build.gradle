@@ -8,8 +8,8 @@ android {
         applicationId "com.affectiva.affdexme"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 494
-        versionName "3.1"
+        versionCode 683
+        versionName "3.1.1"
         setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
     buildTypes {
@@ -37,7 +37,7 @@ android {
 
 dependencies {
     //include the Affdex SDK
-    compile('com.affectiva.android:affdexsdk:3.1')
+    compile('com.affectiva.android:affdexsdk:3.1.1')
 
     //include project dependencies
     compile 'com.android.support:support-v4:23.1.1'
