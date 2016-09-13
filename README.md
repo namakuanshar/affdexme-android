@@ -3,8 +3,6 @@
 **AffdexMe** is an Android app that demonstrates the use of the Affdex SDK.  It uses the camera on your Android device to view, process and analyze live video of your face. Start the app and you will see your face on the screen and metrics describing your expressions. Tapping the screen will bring up a menu with options to display the Processed Frames Per Second metric, display facial tracking points, and control the rate at which frames are processed by the SDK.
 
 To use this project, you will need to:
-- Obtain a license for the Affectiva Android SDK.  Evaluation licenses are available at no cost from http://www.affectiva.com/solutions/apis-sdks/
-- Copy your license file to this project's app/src/main/assets/Affdex folder and rename to license.txt
 - Build the project using Android Studio
 - Run the app and smile!
 
