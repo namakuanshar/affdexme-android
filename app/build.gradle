@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.3'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "com.affectiva.affdexme"
         minSdkVersion 16
-        targetSdkVersion 23
-        versionCode 684
-        versionName "3.1.2"
+        targetSdkVersion 25
+        versionCode 685
+        versionName "3.2.0"
         setProperty("archivesBaseName", "AffdexMe-$versionName-$versionCode")
     }
     buildTypes {
@@ -37,11 +37,11 @@ android {
 
 dependencies {
     //include the Affdex SDK
-    compile('com.affectiva.android:affdexsdk:3.1.2')
+    compile('com.affectiva.android:affdexsdk:3.+')
 
     //include project dependencies
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:support-v4:25.1.0'
+    compile 'com.android.support:appcompat-v7:25.1.0'
 }
 
 // build a signed release apk only if the environment is configured
