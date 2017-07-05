@@ -7,16 +7,16 @@ To use this project, you will need to:
 
 If you are interested in learning how the Affectiva SDK works, you will find the calls relevant to the use of the SDK in the initializeCameraDetector(), startCamera(), stopCamera(), and onImageResults() methods.  See the comment section at the top of the MainActivity.java file for more information.
 
-This is a-edited version of affdeMe that speasially detect a anger emotion of someone and automatically play a alarm sound if the anger score is hinger than 85%
+This is a-edited version of affdexMe that speasially detect a anger emotion of someone and automatically play a alarm sound if the anger score is more than 85%
 
 **Fitur Added or remove**
 + add tornado_sound in raw file
 + change versioncode and versionname to miss the error
-+ change to "comentar" off afdexme Logo
++ change to "comentar" off affdexme Logo
 + add AIMP String, and change the loading_string 
 
 **Coming Soon**
-+ find the detect_anger parameter
++ find the detect_anger_score parameter
 + build play_sound function
 + start play_sound when anger in >85%
 + make a toast notification when user is anger
