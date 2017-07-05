@@ -9,7 +9,9 @@
     android:background="@color/transparent_overlay"
     android:paddingBottom="@dimen/bottom_padding"
     >
-    <!-- Logo-->
+    
+    <!-- Logo  change it to comentar-->
+    <!--
     <ImageView
         android:layout_height="wrap_content"
         android:layout_width="@dimen/logo_width"
@@ -17,6 +19,8 @@
         android:src="@drawable/affectiva_logo_clear_background"
         android:contentDescription="@string/affectiva_logo_content_description"
         android:id="@+id/affectiva_logo" />
+    -->
+    
     <!-- Left MetricsManager-->
     <LinearLayout
         android:orientation="vertical"
