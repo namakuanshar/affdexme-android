@@ -11,6 +11,7 @@
     <string name="affectiva_logo_content_description">Affectiva Logo</string>
     <string name="fps">FPS:</string>
     <string name="loading">Loading&#8230;</string>
+    <string name="aimp">Made in AIMP&#8230;</string>
     <string name="settings_content_description">Settings</string>
 
     <string name="insufficient_permissions">Insufficient Permissions</string>
