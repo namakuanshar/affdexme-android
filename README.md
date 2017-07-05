@@ -9,7 +9,7 @@ If you are interested in learning how the Affectiva SDK works, you will find the
 
 This is a-edited version of affdeMe that speasially detect a anger emotion of someone and automatically play a alarm sound if the anger score is hinger than 85%
 
-**Fitur Adder or remove**
+**Fitur Added or remove**
 + add tornado_sound in raw file
 + change versioncode and versionname to miss the error
 + change to "comentar" off afdexme Logo
